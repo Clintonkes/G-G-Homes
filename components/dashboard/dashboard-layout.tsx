@@ -32,14 +32,14 @@ export function DashboardLayout({
     <div className="mx-auto grid max-w-7xl gap-6 px-4 pb-16 pt-28 md:grid-cols-[280px_1fr] md:px-6">
       <aside className="rounded-[2rem] bg-brand-black p-6 text-brand-white">
         <Link href="/" className="block">
-          <p className="text-xl font-bold text-brand-gold">G &amp; G Homes</p>
+          <p className="text-xl font-bold text-brand-gold">RentEase by G &amp; G Homes</p>
           <p className="text-sm text-brand-gray">Unified account workspace</p>
         </Link>
         <div className="mt-8 flex items-center gap-4 rounded-3xl bg-brand-white/5 p-4">
           <div className="flex h-12 w-12 items-center justify-center rounded-full bg-brand-gold text-brand-black">{initialsFromName(user?.full_name ?? "GG")}</div>
           <div>
             <p className="font-semibold">{user?.full_name ?? "Guest User"}</p>
-            <p className="text-sm text-brand-gray">{user?.role ?? "TENANT"}</p>
+            <p className="text-sm text-brand-gray">{user ? "Unified renter / landlord access" : "Guest access"}</p>
           </div>
         </div>
         <nav className="mt-8 space-y-2">

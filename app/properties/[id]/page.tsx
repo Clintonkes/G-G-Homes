@@ -1,6 +1,7 @@
 import { MapPin, ShieldCheck } from "lucide-react";
 
 import { InspectionBookingModal } from "@/components/forms/inspection-booking-modal";
+import { Reveal } from "@/components/marketing/reveal";
 import { PriceDisplay } from "@/components/properties/price-display";
 import { PropertyGallery } from "@/components/properties/property-gallery";
 import { StatusBadge } from "@/components/properties/status-badge";
@@ -18,9 +19,11 @@ export default async function PropertyDetailPage({ params }: { params: { id: str
 
   return (
     <main className="mx-auto max-w-7xl px-4 pb-20 pt-28 md:px-6">
-      <PropertyGallery photoUrls={property.photo_urls} videoUrls={property.video_urls} title={property.title} />
+      <Reveal>
+        <PropertyGallery photoUrls={property.photo_urls} videoUrls={property.video_urls} title={property.title} />
+      </Reveal>
       <div className="mt-10 grid gap-10 lg:grid-cols-[1.5fr_0.8fr]">
-        <div className="space-y-8">
+        <Reveal className="space-y-8">
           <div className="space-y-4">
             <div className="flex flex-wrap items-center gap-3">
               <StatusBadge value={property.status} />
@@ -39,7 +42,7 @@ export default async function PropertyDetailPage({ params }: { params: { id: str
               ["Toilets", property.toilets],
               ["Furnished", property.is_furnished ? "Yes" : "No"],
             ].map(([label, value]) => (
-              <Card key={label}>
+              <Card key={label} className="interactive-panel">
                 <CardContent>
                   <p className="text-xs uppercase tracking-[0.1em] text-brand-gray">{label}</p>
                   <p className="mt-2 text-2xl font-semibold text-brand-dark-text">{value}</p>
@@ -59,10 +62,10 @@ export default async function PropertyDetailPage({ params }: { params: { id: str
             <h3>Description</h3>
             <p className="mt-4 leading-8 text-brand-gray">{property.description}</p>
           </div>
-        </div>
+        </Reveal>
 
-        <div className="lg:sticky lg:top-28 lg:h-fit">
-          <Card className="border-brand-gold">
+        <Reveal delay={0.1} className="lg:sticky lg:top-28 lg:h-fit">
+          <Card className="interactive-panel border-brand-gold bg-white">
             <CardContent className="space-y-5">
               <PriceDisplay amount={property.annual_rent} size="lg" />
               <p className="text-sm leading-7 text-brand-gray">
@@ -79,7 +82,7 @@ export default async function PropertyDetailPage({ params }: { params: { id: str
               </div>
             </CardContent>
           </Card>
-        </div>
+        </Reveal>
       </div>
     </main>
   );

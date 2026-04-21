@@ -8,7 +8,7 @@
   }
 
   body {
-    @apply bg-brand-cream font-sans text-base text-brand-dark-text antialiased;
+    @apply font-sans text-base text-brand-dark-text antialiased;
   }
 
   h1 {
@@ -25,5 +25,15 @@
 
   h4 {
     @apply text-lg font-medium;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+@layer components {
+  .interactive-panel {
+    @apply rounded-[2rem] border border-brand-gold/15 bg-white/5 backdrop-blur-sm transition duration-300 hover:-translate-y-1 hover:scale-[1.02] hover:border-brand-gold/35 hover:shadow-[0_26px_80px_rgba(0,0,0,0.2)];
   }
 }

@@ -12,7 +12,7 @@ export function PropertyCard({ property, variant = "grid" }: { property: Propert
   const image = property.thumbnail_url || property.photo_urls[0] || "https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=1200&q=80&auto=format&fit=crop";
 
   return (
-    <Card className={variant === "list" ? "overflow-hidden md:grid md:grid-cols-[320px_1fr]" : "overflow-hidden transition hover:-translate-y-1 hover:shadow-glow"}>
+    <Card className={variant === "list" ? "interactive-panel overflow-hidden md:grid md:grid-cols-[320px_1fr]" : "interactive-panel overflow-hidden"}>
       <div className="relative min-h-64">
         <Image src={image} alt={property.title} fill className="object-cover" />
       </div>

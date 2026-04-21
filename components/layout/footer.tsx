@@ -6,7 +6,7 @@ export function Footer() {
       <div className="mx-auto grid max-w-7xl gap-10 px-4 py-16 md:grid-cols-4 md:px-6">
         <div className="space-y-4">
           <div>
-            <p className="text-xl font-bold text-brand-gold">G &amp; G Homes</p>
+            <p className="text-xl font-bold text-brand-gold">RentEase by G &amp; G Homes</p>
             <p className="text-sm text-brand-gray">Where Every Home Tells a Story</p>
           </div>
           <p className="text-sm leading-7 text-brand-gray">

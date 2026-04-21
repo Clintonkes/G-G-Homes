@@ -30,9 +30,9 @@ export function LoginForm() {
 
   return (
     <Card className="w-full max-w-lg">
-      <CardContent className="space-y-6">
+      <CardContent className="space-y-6 p-8 md:p-10">
         <div className="text-center">
-          <p className="text-lg font-bold text-brand-gold">G &amp; G Homes</p>
+          <p className="text-lg font-bold text-brand-gold">RentEase by G &amp; G Homes</p>
           <h2 className="mt-3">Welcome Back</h2>
         </div>
         <form onSubmit={onSubmit} className="space-y-4">
@@ -47,6 +47,9 @@ export function LoginForm() {
           <Button className="w-full" type="submit">
             Sign In
           </Button>
+          <Link href="/register" className="block text-center text-sm font-medium text-brand-dark-text">
+            Need an account? <span className="text-brand-gold">Create one here</span>
+          </Link>
         </form>
       </CardContent>
     </Card>
