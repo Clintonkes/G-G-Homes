@@ -1,0 +1,29 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    @apply border-brand-border;
+  }
+
+  body {
+    @apply bg-brand-cream font-sans text-base text-brand-dark-text antialiased;
+  }
+
+  h1 {
+    @apply text-5xl font-bold leading-tight md:text-6xl;
+  }
+
+  h2 {
+    @apply text-4xl font-semibold leading-tight;
+  }
+
+  h3 {
+    @apply text-2xl font-semibold;
+  }
+
+  h4 {
+    @apply text-lg font-medium;
+  }
+}
