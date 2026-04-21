@@ -1,19 +1,18 @@
+
 import { Property, User, Appointment, Payment, NotificationItem } from "@/lib/types";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 
-function authHeaders(token?: string | null) {
-  return token ? { Authorization: `Bearer ${token}` } : {};
-}
-
 async function request<T>(path: string, init: RequestInit = {}, token?: string | null): Promise<T> {
+  const headers = new Headers(init.headers);
+  headers.set("Content-Type", "application/json");
+  if (token) {
+    headers.set("Authorization", `Bearer ${token}`);
+  }
+
   const response = await fetch(`${API_URL}${path}`, {
     ...init,
-    headers: {
-      "Content-Type": "application/json",
-      ...authHeaders(token),
-      ...(init.headers ?? {}),
-    },
+    headers,
     cache: "no-store",
   });
   if (!response.ok) {
