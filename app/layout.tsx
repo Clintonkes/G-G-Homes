@@ -13,7 +13,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body className="relative min-h-screen bg-brand-black">
+      <body className="relative min-h-screen bg-brand-black font-sans text-brand-dark-text">
         <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(217,175,60,0.2),_transparent_28%),linear-gradient(180deg,_#070707_0%,_#101010_48%,_#070707_100%)]" />
           <div className="absolute left-[-10%] top-[15%] h-72 w-72 rounded-full bg-brand-gold/10 blur-3xl" />
@@ -21,10 +21,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         </div>
         <QueryProvider>
           <Navbar />
-          <div className="relative z-10">
-            {children}
-            <Footer />
-          </div>
+          {children}
+          <Footer />
         </QueryProvider>
       </body>
     </html>

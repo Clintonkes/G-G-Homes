@@ -32,8 +32,8 @@ export function IntroShowcase() {
     setHidden(false);
     sessionStorage.setItem("gg-intro-seen", "true");
 
-    const interval = window.setInterval(() => emblaApi?.scrollNext(), 1400);
-    const timeout = window.setTimeout(() => setHidden(true), 3600);
+    const interval = window.setInterval(() => emblaApi?.scrollNext(), 2200);
+    const timeout = window.setTimeout(() => setHidden(true), 6200);
 
     return () => {
       window.clearInterval(interval);
@@ -43,7 +43,7 @@ export function IntroShowcase() {
 
   return (
     <div
-      className={`pointer-events-none fixed inset-0 z-50 transition-all duration-700 ${hidden ? "translate-y-6 opacity-0" : "translate-y-0 opacity-100"}`}
+      className={`pointer-events-none fixed inset-0 z-50 transition-all duration-1000 ease-out ${hidden ? "translate-y-6 opacity-0" : "translate-y-0 opacity-100"}`}
       aria-hidden={hidden}
     >
       <div className="absolute inset-0 bg-brand-black/95 backdrop-blur-md" />
@@ -53,7 +53,7 @@ export function IntroShowcase() {
             <div className="p-8 md:p-12">
               <p className="text-xs font-semibold uppercase tracking-[0.28em] text-brand-gold">Welcome to RentEase</p>
               <h2 className="mt-4 text-4xl font-semibold text-brand-white md:text-5xl">G &amp; G Properties</h2>
-              <p className="mt-5 max-w-xl text-base leading-8 text-brand-white/75">
+              <p className="mt-5 max-w-xl text-lg leading-9 text-brand-white/75">
                 The original intro experience is back first, then the full website opens with the same premium property-led mood.
               </p>
             </div>
@@ -66,7 +66,7 @@ export function IntroShowcase() {
                     <div className="relative flex min-h-[320px] flex-col justify-end p-8 text-brand-white">
                       <p className="text-xs uppercase tracking-[0.2em] text-brand-gold">Property Slide</p>
                       <h3 className="mt-3 text-2xl">{slide.title}</h3>
-                      <p className="mt-3 text-sm leading-7 text-brand-white/75">{slide.copy}</p>
+                      <p className="mt-3 text-base leading-8 text-brand-white/75">{slide.copy}</p>
                     </div>
                   </div>
                 ))}

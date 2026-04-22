@@ -25,7 +25,16 @@ const config: Config = {
         },
       },
       fontFamily: {
-        sans: ["var(--font-montserrat)"],
+        sans: [
+          "SF Pro Display",
+          "SF Pro Text",
+          "-apple-system",
+          "BlinkMacSystemFont",
+          "Segoe UI",
+          "Helvetica Neue",
+          "Arial",
+          "sans-serif",
+        ],
       },
       borderRadius: {
         lg: "1rem",

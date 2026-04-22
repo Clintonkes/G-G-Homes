@@ -3,37 +3,39 @@
 @tailwind utilities;
 
 @layer base {
+  html {
+    font-size: 17px;
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+  }
+
   * {
     @apply border-brand-border;
   }
 
   body {
-    @apply font-sans text-base text-brand-dark-text antialiased;
+    @apply min-h-screen bg-brand-black font-sans text-[1rem] leading-8 text-brand-dark-text antialiased;
   }
 
   h1 {
-    @apply text-5xl font-bold leading-tight md:text-6xl;
+    @apply text-5xl font-bold leading-[1.05] md:text-7xl;
   }
 
   h2 {
-    @apply text-4xl font-semibold leading-tight;
+    @apply text-4xl font-semibold leading-[1.08] md:text-5xl;
   }
 
   h3 {
-    @apply text-2xl font-semibold;
+    @apply text-[1.75rem] font-semibold leading-[1.15];
   }
 
   h4 {
-    @apply text-lg font-medium;
-  }
-
-  html {
-    scroll-behavior: smooth;
+    @apply text-xl font-medium leading-[1.2];
   }
 }
 
 @layer components {
   .interactive-panel {
-    @apply rounded-[2rem] border border-brand-gold/15 bg-white/5 backdrop-blur-sm transition duration-300 hover:-translate-y-1 hover:scale-[1.02] hover:border-brand-gold/35 hover:shadow-[0_26px_80px_rgba(0,0,0,0.2)];
+    @apply rounded-[2rem] border border-brand-gold/15 bg-white/5 backdrop-blur-sm transition duration-700 ease-out hover:-translate-y-1 hover:scale-[1.02] hover:border-brand-gold/35 hover:shadow-[0_26px_80px_rgba(0,0,0,0.2)];
   }
 }

@@ -34,7 +34,7 @@ export default async function HomePage() {
           <Reveal className="text-brand-white">
             <p className="text-xs font-semibold uppercase tracking-[0.16em] text-brand-gold">Ebonyi State · Nigeria · Zero Agent Fees</p>
             <h1 className="mt-6 max-w-4xl">Find Your Perfect Home with RentEase by G &amp; G Homes.</h1>
-            <p className="mt-6 max-w-3xl text-lg leading-8 text-brand-white/80">
+            <p className="mt-6 max-w-3xl text-xl leading-9 text-brand-white/80">
               Browse verified properties, schedule inspections, pay securely, and manage your rental journey from one unified account built for both tenants and landlords.
             </p>
             <div className="mt-10 flex flex-col gap-4 sm:flex-row">
@@ -57,7 +57,7 @@ export default async function HomePage() {
                 </div>
                 <div className="mt-6 overflow-hidden rounded-[1.5rem]">
                   <div
-                    className="min-h-[300px] bg-cover bg-center transition duration-500 hover:scale-105"
+                    className="min-h-[300px] bg-cover bg-center transition duration-1000 ease-out hover:scale-105"
                     style={{ backgroundImage: "url('https://images.unsplash.com/photo-1600585154526-990dced4db0d?w=1400&q=80&auto=format&fit=crop')" }}
                   />
                 </div>
