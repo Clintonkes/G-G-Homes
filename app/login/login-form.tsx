@@ -6,20 +6,30 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 
 import { login } from "@/lib/api";
+import { getPasswordValidationMessage } from "@/lib/password-rules";
 import { useAuthStore } from "@/lib/store";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
+import { PasswordRequirements } from "@/components/ui/password-requirements";
 
 export function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const setSession = useAuthStore((state) => state.setSession);
   const [error, setError] = useState<string | null>(null);
-  const { register, handleSubmit } = useForm<{ email: string; password: string }>();
+  const {
+    register,
+    handleSubmit,
+    watch,
+    formState: { errors },
+  } = useForm<{ email: string; password: string }>({ mode: "onChange" });
+  const password = watch("password", "");
 
   const onSubmit = handleSubmit(async (values) => {
     try {
+      setError(null);
       const response = await login(values.email, values.password);
       setSession(response.access_token, response.user);
       router.push(searchParams.get("returnUrl") || "/dashboard");
@@ -37,7 +47,14 @@ export function LoginForm() {
         </div>
         <form onSubmit={onSubmit} className="space-y-4">
           <Input placeholder="Email" type="email" {...register("email", { required: true })} />
-          <Input placeholder="Password" type="password" {...register("password", { required: true })} />
+          <PasswordInput
+            placeholder="Password"
+            {...register("password", {
+              validate: getPasswordValidationMessage,
+            })}
+          />
+          <PasswordRequirements password={password} />
+          {errors.password ? <p className="text-sm text-brand-red">{errors.password.message}</p> : null}
           <div className="text-right">
             <Link href="/forgot-password" className="text-sm text-brand-gold">
               Forgot Password?

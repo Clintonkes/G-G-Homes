@@ -10,11 +10,16 @@ async function request<T>(path: string, init: RequestInit = {}, token?: string |
     headers.set("Authorization", `Bearer ${token}`);
   }
 
-  const response = await fetch(`${API_URL}${path}`, {
-    ...init,
-    headers,
-    cache: "no-store",
-  });
+  let response: Response;
+  try {
+    response = await fetch(`${API_URL}${path}`, {
+      ...init,
+      headers,
+      cache: "no-store",
+    });
+  } catch {
+    throw new Error(`Cannot reach the API at ${API_URL}. Start the backend service or set NEXT_PUBLIC_API_URL to your deployed backend URL.`);
+  }
   if (!response.ok) {
     const payload = await response.json().catch(() => ({ detail: "Request failed" }));
     throw new Error(payload.detail ?? "Request failed");
