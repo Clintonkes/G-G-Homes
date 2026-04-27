@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 
 import "@/app/globals.css";
+import { ApiDebugLine } from "@/components/layout/api-debug-line";
 import { QueryProvider } from "@/components/providers/query-provider";
 import { Footer } from "@/components/layout/footer";
 import { Navbar } from "@/components/layout/navbar";
@@ -23,6 +24,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <Navbar />
           {children}
           <Footer />
+          <ApiDebugLine />
         </QueryProvider>
       </body>
     </html>
