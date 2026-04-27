@@ -10,7 +10,7 @@ export function Footer() {
             <p className="text-sm text-brand-gray">Where Every Home Tells a Story</p>
           </div>
           <p className="text-sm leading-7 text-brand-gray">
-            RentEase helps landlords and tenants connect directly across Ebonyi State without house agents.
+            RentEase helps landlords and tenants connect directly across multiple cities and regions without house agents.
           </p>
         </div>
         <div className="space-y-3">

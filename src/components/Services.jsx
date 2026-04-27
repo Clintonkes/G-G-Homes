@@ -4,7 +4,7 @@ const SERVICES = [
   {
     icon: '🏛️',
     name: 'Property Sales',
-    desc: 'Premium residential and commercial properties across Ebonyi State, curated for quality and value.',
+    desc: 'Premium residential and commercial properties across multiple markets, curated for quality and value.',
     wa: false,
   },
   {
@@ -16,13 +16,13 @@ const SERVICES = [
   {
     icon: '📊',
     name: 'Real Estate Consulting',
-    desc: 'Expert guidance on property investment, valuation, and market trends in Southeast Nigeria.',
+    desc: 'Expert guidance on property investment, valuation, and market trends across diverse real estate markets.',
     wa: false,
   },
   {
     icon: '🏗️',
     name: 'Property Development',
-    desc: 'Partnering with developers to bring world-class residential estates to Ebonyi State.',
+    desc: 'Partnering with developers to bring world-class residential estates to high-potential locations.',
     wa: false,
   },
 ];

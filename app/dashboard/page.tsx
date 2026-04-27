@@ -54,8 +54,8 @@ export default function DashboardPage() {
       description: "",
       address: "",
       neighbourhood: "",
-      city: "Abakaliki",
-      state: "Ebonyi State",
+      city: "",
+      state: "",
       property_type: "FLAT",
       bedrooms: 2,
       bathrooms: 2,
@@ -189,6 +189,7 @@ export default function DashboardPage() {
               <Input placeholder="Address" className="md:col-span-2" {...propertyForm.register("address")} />
               <Input placeholder="Neighbourhood" {...propertyForm.register("neighbourhood")} />
               <Input placeholder="City" {...propertyForm.register("city")} />
+              <Input placeholder="State / Region" {...propertyForm.register("state")} />
               <Textarea placeholder="Property description" className="md:col-span-2" {...propertyForm.register("description")} />
               <Input placeholder="Amenities separated by commas" className="md:col-span-2" {...propertyForm.register("amenities")} />
               <Input placeholder="Photo URLs separated by commas" className="md:col-span-2" {...propertyForm.register("photo_urls")} />

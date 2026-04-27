@@ -16,7 +16,7 @@ const stats = [
   { value: 500, suffix: "+", label: "Properties Listed" },
   { value: 1200, suffix: "+", label: "Happy Clients" },
   { value: 0, prefix: "₦", label: "Agent Fees" },
-  { value: 13, label: "LGAs Covered" },
+  { value: 13, label: "Locations Covered" },
 ];
 
 export default async function HomePage() {
@@ -32,10 +32,10 @@ export default async function HomePage() {
         <div className="absolute inset-0 bg-brand-black/55" />
         <div className="relative mx-auto grid max-w-7xl gap-10 px-4 pb-16 pt-28 md:px-6 lg:grid-cols-[1.15fr_0.85fr] lg:items-end">
           <Reveal className="text-brand-white">
-            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-brand-gold">Ebonyi State · Nigeria · Zero Agent Fees</p>
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-brand-gold">Multi-location real estate platform · Verified listings · Direct access</p>
             <h1 className="mt-6 max-w-4xl">Find Your Perfect Home with RentEase by G &amp; G Homes.</h1>
             <p className="mt-6 max-w-3xl text-xl leading-9 text-brand-white/80">
-              Browse verified properties, schedule inspections, pay securely, and manage your rental journey from one unified account built for both tenants and landlords.
+              Browse verified properties, schedule inspections, pay securely, and manage your rental journey from one unified account built for tenants, landlords, and multiple locations.
             </p>
             <div className="mt-10 flex flex-col gap-4 sm:flex-row">
               <Link href="/properties"><Button size="lg">Browse Properties</Button></Link>
@@ -115,7 +115,7 @@ export default async function HomePage() {
       <section className="bg-white py-20">
         <div className="mx-auto max-w-7xl px-4 md:px-6">
           <Reveal>
-            <SectionHeading label="Featured Properties" title="Handpicked Properties Across Ebonyi State" />
+            <SectionHeading label="Featured Properties" title="Handpicked Properties Across Growing Locations" />
           </Reveal>
           <div className="mt-12 grid gap-6 lg:grid-cols-3">
             {featured.items.map((property, index) => (
@@ -184,7 +184,7 @@ export default async function HomePage() {
         <div className="mx-auto flex max-w-7xl flex-col items-start justify-between gap-6 px-4 md:flex-row md:items-center md:px-6">
           <div>
             <h3 className="text-brand-black">Get Notified When New Properties Are Listed</h3>
-            <p className="mt-1 text-sm text-brand-black/80">Join the waitlist for fresh verified rentals across Ebonyi State.</p>
+            <p className="mt-1 text-sm text-brand-black/80">Join the waitlist for fresh verified rentals in the locations you care about.</p>
           </div>
           <Link href="/register">
             <Button variant="dark" className="gap-2">Create an account <ChevronRight className="h-4 w-4" /></Button>

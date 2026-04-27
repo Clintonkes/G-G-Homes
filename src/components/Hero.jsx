@@ -31,7 +31,7 @@ export default function Hero() {
 
       <div className="hero-content">
         <span className="hero-label">
-          PREMIUM REAL ESTATE · EBONYI STATE · NIGERIA
+          PREMIUM REAL ESTATE · MULTIPLE LOCATIONS · NIGERIA
         </span>
 
         <h1 className="hero-title">
@@ -48,7 +48,7 @@ export default function Hero() {
 
         <p className="hero-subtitle">
           G &amp; G Homes connects discerning buyers and tenants with exceptional
-          properties across Ebonyi State and Southeast Nigeria.
+          properties across multiple cities, neighbourhoods, and emerging markets.
         </p>
 
         <div className="hero-btns">

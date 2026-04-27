@@ -6,7 +6,7 @@ import useEmblaCarousel from "embla-carousel-react";
 const slides = [
   {
     title: "G & G Properties",
-    copy: "Verified homes, direct access to landlords, and a smoother rental experience across Ebonyi State.",
+    copy: "Verified homes, direct access to landlords, and a smoother rental experience across multiple cities and neighbourhoods.",
     image: "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=1600&q=80&auto=format&fit=crop",
   },
   {

@@ -7,7 +7,7 @@ import { Navbar } from "@/components/layout/navbar";
 
 export const metadata: Metadata = {
   title: "RentEase by G & G Homes",
-  description: "Where Every Home Tells a Story. Direct landlord-to-tenant rentals across Ebonyi State with zero agent fees.",
+  description: "Where Every Home Tells a Story. A multi-location real estate platform for direct landlord-to-tenant access.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

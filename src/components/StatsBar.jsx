@@ -4,7 +4,7 @@ const STATS = [
   { end: 500, suffix: '+', label: 'Properties Listed' },
   { end: 1200, suffix: '+', label: 'Happy Clients' },
   { end: 8, suffix: '', label: 'Years Experience' },
-  { end: 13, suffix: '', label: 'LGAs Covered' },
+  { end: 13, suffix: '', label: 'Locations Covered' },
 ];
 
 function useCountUp(end, duration = 2000, active) {

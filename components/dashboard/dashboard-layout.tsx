@@ -32,8 +32,16 @@ export function DashboardLayout({
     <div className="mx-auto grid max-w-7xl gap-6 px-4 pb-16 pt-28 md:grid-cols-[280px_1fr] md:px-6">
       <aside className="rounded-[2rem] bg-brand-black p-6 text-brand-white">
         <Link href="/" className="block">
-          <p className="text-xl font-bold text-brand-gold">RentEase by G &amp; G Homes</p>
-          <p className="text-sm text-brand-gray">Unified account workspace</p>
+          <div className="inline-flex rounded-[1.5rem] bg-white/95 p-2 shadow-[0_18px_50px_rgba(0,0,0,0.18)]">
+            <div className="h-[72px] w-[210px] overflow-hidden rounded-[1rem] bg-white">
+              <img
+                src="/gghomes-logo-source.png"
+                alt="G & G Homes"
+                className="h-[170px] w-[390px] max-w-none -translate-x-[52px] -translate-y-[48px]"
+              />
+            </div>
+          </div>
+          <p className="mt-3 text-sm text-brand-gray">Unified real estate workspace</p>
         </Link>
         <div className="mt-8 flex items-center gap-4 rounded-3xl bg-brand-white/5 p-4">
           <div className="flex h-12 w-12 items-center justify-center rounded-full bg-brand-gold text-brand-black">{initialsFromName(user?.full_name ?? "GG")}</div>

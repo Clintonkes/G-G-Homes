@@ -35,7 +35,7 @@ export default function Testimonials() {
       <div className="testimonials-header">
         <span className="section-label gold-text">WHAT OUR CLIENTS SAY</span>
         <h2 className="testimonials-title" id="testimonials-heading">
-          Trusted by Thousands in Ebonyi State
+          Trusted by Clients Across Growing Markets
         </h2>
       </div>
 

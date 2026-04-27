@@ -25,7 +25,7 @@ function PhoneMockup() {
             <div className="wa-msg-bot">
               🏠 <strong>Welcome to G & G Homes Nigeria!</strong>
               <br /><br />
-              Find and rent properties in Ebonyi State — <strong>no agent fees.</strong>
+              Find and rent properties across multiple locations — <strong>no agent fees.</strong>
               <br /><br />
               What would you like to do?
               <div className="wa-btns">
@@ -55,7 +55,7 @@ export default function Platform() {
           <span className="section-label rentease-label">G & G HOMES EXCELLENCE</span>
 
           <h2 className="rentease-title" id="platform-heading">
-            Rent a Home in Ebonyi State Directly from G & G Homes
+            Rent a Home Across Multiple Locations Directly from G & G Homes
           </h2>
 
           <p className="rentease-sub">
@@ -91,7 +91,7 @@ export default function Platform() {
               <span>💬</span> Start Your Journey on WhatsApp
             </a>
             <p className="rentease-beta">
-              Premium Property Experience — available to residents of Abakaliki and Ebonyi State
+              Premium Property Experience — built for clients across multiple cities and regions
             </p>
           </div>
         </div>
