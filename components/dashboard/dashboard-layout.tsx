@@ -33,9 +33,9 @@ export function DashboardLayout({
     <div className="mx-auto grid max-w-7xl gap-6 px-4 pb-16 pt-28 md:grid-cols-[280px_1fr] md:px-6">
       <aside className="rounded-[2rem] bg-brand-black p-6 text-brand-white">
         <Link href="/" className="block">
-          <div className="inline-flex rounded-[1.5rem] bg-white/95 p-3 shadow-[0_18px_50px_rgba(0,0,0,0.18)]">
+          <div className="inline-flex items-center">
             <Image
-              src="/gghomes-logo.png"
+              src="/gghomes-logo-clean.png"
               alt="G & G Homes"
               width={220}
               height={71}

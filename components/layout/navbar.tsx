@@ -24,9 +24,9 @@ export function Navbar() {
   return (
     <header className={cn("fixed inset-x-0 top-0 z-40 transition-all", scrolled ? "bg-brand-black/95 backdrop-blur" : "bg-transparent")}>
       <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 md:px-6">
-        <Link href="/" className="inline-flex rounded-[1.25rem] bg-white/95 p-2 shadow-[0_14px_36px_rgba(0,0,0,0.18)]">
+        <Link href="/" className="inline-flex items-center">
           <Image
-            src="/gghomes-logo.png"
+            src="/gghomes-logo-clean.png"
             alt="G & G Homes"
             width={190}
             height={61}
