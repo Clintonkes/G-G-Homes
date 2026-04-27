@@ -1,9 +1,8 @@
 "use client";
 
-import Image from "next/image";
-import Link from "next/link";
 import { Home, Bell, CreditCard, Heart, LayoutDashboard, PlusCircle, Search, Settings } from "lucide-react";
 
+import { BrandLockup } from "@/components/layout/brand-lockup";
 import { cn, initialsFromName } from "@/lib/utils";
 import { useAuthStore } from "@/lib/store";
 
@@ -32,19 +31,13 @@ export function DashboardLayout({
   return (
     <div className="mx-auto grid max-w-7xl gap-6 px-4 pb-16 pt-28 md:grid-cols-[280px_1fr] md:px-6">
       <aside className="rounded-[2rem] bg-brand-black p-6 text-brand-white">
-        <Link href="/" className="block">
-          <div className="inline-flex items-center">
-            <Image
-              src="/gghomes-logo-clean.png"
-              alt="G & G Homes"
-              width={220}
-              height={71}
-              className="h-auto w-[220px]"
-              priority
-            />
-          </div>
-          <p className="mt-3 text-sm text-brand-gray">Unified real estate workspace</p>
-        </Link>
+        <BrandLockup
+          className="items-start"
+          markWidth={48}
+          titleClassName="text-xl"
+          subtitle="Unified real estate workspace"
+          subtitleClassName="text-sm text-brand-gray"
+        />
         <div className="mt-8 flex items-center gap-4 rounded-3xl bg-brand-white/5 p-4">
           <div className="flex h-12 w-12 items-center justify-center rounded-full bg-brand-gold text-brand-black">{initialsFromName(user?.full_name ?? "GG")}</div>
           <div>

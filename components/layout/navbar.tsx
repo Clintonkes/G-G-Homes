@@ -1,10 +1,10 @@
 "use client";
 
-import Image from "next/image";
-import Link from "next/link";
 import { Menu, X } from "lucide-react";
+import Link from "next/link";
 import { useState } from "react";
 
+import { BrandLockup } from "@/components/layout/brand-lockup";
 import { Button } from "@/components/ui/button";
 import { SectionLink } from "@/components/marketing/section-link";
 import { cn } from "@/lib/utils";
@@ -24,16 +24,7 @@ export function Navbar() {
   return (
     <header className={cn("fixed inset-x-0 top-0 z-40 transition-all", scrolled ? "bg-brand-black/95 backdrop-blur" : "bg-transparent")}>
       <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 md:px-6">
-        <Link href="/" className="inline-flex items-center">
-          <Image
-            src="/gghomes-logo-clean.png"
-            alt="G & G Homes"
-            width={190}
-            height={61}
-            className="h-auto w-[150px] md:w-[190px]"
-            priority
-          />
-        </Link>
+        <BrandLockup markWidth={44} />
 
         <nav className="hidden items-center gap-6 md:flex">
           <SectionLink sectionId="how-it-works" className="text-sm font-medium text-brand-white transition hover:text-brand-gold">
