@@ -6,7 +6,7 @@ import { Footer } from "@/components/layout/footer";
 import { Navbar } from "@/components/layout/navbar";
 
 export const metadata: Metadata = {
-  title: "RentEase by G & G Homes",
+  title: "G & G Homes",
   description: "Where Every Home Tells a Story. A multi-location real estate platform for direct landlord-to-tenant access.",
 };
 

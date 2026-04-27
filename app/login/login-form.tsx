@@ -42,7 +42,7 @@ export function LoginForm() {
     <Card className="w-full max-w-lg">
       <CardContent className="space-y-6 p-8 md:p-10">
         <div className="text-center">
-          <p className="text-lg font-bold text-brand-gold">RentEase by G &amp; G Homes</p>
+          <p className="text-lg font-bold text-brand-gold">G &amp; G Homes</p>
           <h2 className="mt-3">Welcome Back</h2>
         </div>
         <form onSubmit={onSubmit} className="space-y-4">

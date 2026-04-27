@@ -24,8 +24,8 @@ export function Navbar() {
     <header className={cn("fixed inset-x-0 top-0 z-40 transition-all", scrolled ? "bg-brand-black/95 backdrop-blur" : "bg-transparent")}>
       <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 md:px-6">
         <Link href="/" className="flex flex-col">
-          <span className="text-lg font-bold text-brand-gold md:text-xl">RentEase</span>
-          <span className="text-xs text-brand-white/70">by G &amp; G Homes</span>
+          <span className="text-lg font-bold text-brand-gold md:text-xl">G &amp; G Homes</span>
+          <span className="text-xs text-brand-white/70">Where Every Home Tells a Story</span>
         </Link>
 
         <nav className="hidden items-center gap-6 md:flex">

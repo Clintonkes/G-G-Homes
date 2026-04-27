@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { Home, Bell, CreditCard, Heart, LayoutDashboard, PlusCircle, Search, Settings } from "lucide-react";
 
@@ -32,14 +33,15 @@ export function DashboardLayout({
     <div className="mx-auto grid max-w-7xl gap-6 px-4 pb-16 pt-28 md:grid-cols-[280px_1fr] md:px-6">
       <aside className="rounded-[2rem] bg-brand-black p-6 text-brand-white">
         <Link href="/" className="block">
-          <div className="inline-flex rounded-[1.5rem] bg-white/95 p-2 shadow-[0_18px_50px_rgba(0,0,0,0.18)]">
-            <div className="h-[72px] w-[210px] overflow-hidden rounded-[1rem] bg-white">
-              <img
-                src="/gghomes-logo-source.png"
-                alt="G & G Homes"
-                className="h-[170px] w-[390px] max-w-none -translate-x-[52px] -translate-y-[48px]"
-              />
-            </div>
+          <div className="inline-flex rounded-[1.5rem] bg-white/95 p-3 shadow-[0_18px_50px_rgba(0,0,0,0.18)]">
+            <Image
+              src="/gghomes-logo.png"
+              alt="G & G Homes"
+              width={220}
+              height={71}
+              className="h-auto w-[220px]"
+              priority
+            />
           </div>
           <p className="mt-3 text-sm text-brand-gray">Unified real estate workspace</p>
         </Link>

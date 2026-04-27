@@ -15,7 +15,7 @@ const slides = [
     image: "https://images.unsplash.com/photo-1600607687644-c7171b42498f?w=1600&q=80&auto=format&fit=crop",
   },
   {
-    title: "RentEase by G & G Homes",
+    title: "G & G Homes",
     copy: "One account to search, inspect, pay, save, and list properties with zero agent friction.",
     image: "https://images.unsplash.com/photo-1600585154526-990dced4db0d?w=1600&q=80&auto=format&fit=crop",
   },
@@ -51,7 +51,7 @@ export function IntroShowcase() {
         <div className="w-full max-w-5xl overflow-hidden rounded-[2rem] border border-brand-gold/20 bg-brand-black/80 shadow-[0_30px_120px_rgba(0,0,0,0.5)]">
           <div className="grid gap-0 md:grid-cols-[1.1fr_0.9fr]">
             <div className="p-8 md:p-12">
-              <p className="text-xs font-semibold uppercase tracking-[0.28em] text-brand-gold">Welcome to RentEase</p>
+              <p className="text-xs font-semibold uppercase tracking-[0.28em] text-brand-gold">Welcome to G &amp; G Homes</p>
               <h2 className="mt-4 text-4xl font-semibold text-brand-white md:text-5xl">G &amp; G Properties</h2>
               <p className="mt-5 max-w-xl text-lg leading-9 text-brand-white/75">
                 The original intro experience is back first, then the full website opens with the same premium property-led mood.

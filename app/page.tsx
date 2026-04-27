@@ -33,7 +33,7 @@ export default async function HomePage() {
         <div className="relative mx-auto grid max-w-7xl gap-10 px-4 pb-16 pt-28 md:px-6 lg:grid-cols-[1.15fr_0.85fr] lg:items-end">
           <Reveal className="text-brand-white">
             <p className="text-xs font-semibold uppercase tracking-[0.16em] text-brand-gold">Multi-location real estate platform · Verified listings · Direct access</p>
-            <h1 className="mt-6 max-w-4xl">Find Your Perfect Home with RentEase by G &amp; G Homes.</h1>
+            <h1 className="mt-6 max-w-4xl">Find Your Perfect Home with G &amp; G Homes.</h1>
             <p className="mt-6 max-w-3xl text-xl leading-9 text-brand-white/80">
               Browse verified properties, schedule inspections, pay securely, and manage your rental journey from one unified account built for tenants, landlords, and multiple locations.
             </p>
@@ -89,7 +89,7 @@ export default async function HomePage() {
       <section id="how-it-works" className="py-20">
         <div className="mx-auto max-w-7xl px-4 md:px-6">
           <Reveal>
-            <SectionHeading label="How RentEase Works" title="From Search to Move-In in 4 Steps" invert />
+            <SectionHeading label="How G &amp; G Homes Works" title="From Search to Move-In in 4 Steps" invert />
           </Reveal>
           <div className="mt-12 grid gap-6 lg:grid-cols-4">
             {[
@@ -130,7 +130,7 @@ export default async function HomePage() {
       <section className="py-20">
         <div className="mx-auto grid max-w-7xl gap-10 px-4 md:grid-cols-2 md:px-6">
           <Reveal>
-            <SectionHeading label="For Landlords" title="Are You a Landlord?" body="List your property on RentEase and connect directly with verified tenants. No middlemen. No agent commissions. Full control." invert />
+            <SectionHeading label="For Landlords" title="Are You a Landlord?" body="List your property with G & G Homes and connect directly with verified tenants. No middlemen. No agent commissions. Full control." invert />
             <Link href="/register" className="mt-8 inline-block">
               <Button>List Your Property Free</Button>
             </Link>
