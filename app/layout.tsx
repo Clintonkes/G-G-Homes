@@ -12,6 +12,8 @@ export const metadata: Metadata = {
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
+  const proxyTarget = process.env.BACKEND_API_URL ?? process.env.NEXT_PUBLIC_API_URL ?? "missing";
+
   return (
     <html lang="en">
       <body className="relative min-h-screen bg-brand-black font-sans text-brand-dark-text">
@@ -24,7 +26,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <Navbar />
           {children}
           <Footer />
-          <ApiDebugLine />
+          <ApiDebugLine proxyTarget={proxyTarget} />
         </QueryProvider>
       </body>
     </html>
