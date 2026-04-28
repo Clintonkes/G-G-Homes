@@ -4,12 +4,14 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 
 import { AuthShell } from "@/components/marketing/auth-shell";
+import { forgotPassword } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 
 export default function ForgotPasswordPage() {
   const [message, setMessage] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const { register, handleSubmit, reset } = useForm<{ email: string }>();
 
   return (
@@ -28,18 +30,20 @@ export default function ForgotPasswordPage() {
           </div>
           <form
             onSubmit={handleSubmit(async ({ email }) => {
-              await fetch(`${process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000"}/api/auth/forgot-password`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ email }),
-              });
-              reset();
-              setMessage("If your account exists, reset instructions have been sent.");
+              try {
+                setError(null);
+                await forgotPassword(email);
+                reset();
+                setMessage("If your account exists, reset instructions have been sent.");
+              } catch (err) {
+                setError(err instanceof Error ? err.message : "Unable to send reset instructions.");
+              }
             })}
             className="space-y-4"
           >
             <Input placeholder="Email" type="email" {...register("email", { required: true })} />
             {message ? <p className="text-sm text-brand-gray">{message}</p> : null}
+            {error ? <p className="text-sm text-brand-red">{error}</p> : null}
             <Button type="submit" className="w-full">Send reset link</Button>
           </form>
         </CardContent>

@@ -1,7 +1,11 @@
-
 import { Property, User, Appointment, Payment, NotificationItem } from "@/lib/types";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+function getAppOrigin() {
+  if (typeof window !== "undefined") return "";
+
+  const raw = process.env.NEXT_PUBLIC_APP_URL?.trim() || process.env.RAILWAY_PUBLIC_DOMAIN?.trim() || "http://localhost:3000";
+  return raw.startsWith("http") ? raw : `https://${raw}`;
+}
 
 async function request<T>(path: string, init: RequestInit = {}, token?: string | null): Promise<T> {
   const headers = new Headers(init.headers);
@@ -12,13 +16,13 @@ async function request<T>(path: string, init: RequestInit = {}, token?: string |
 
   let response: Response;
   try {
-    response = await fetch(`${API_URL}${path}`, {
+    response = await fetch(`${getAppOrigin()}${path}`, {
       ...init,
       headers,
       cache: "no-store",
     });
   } catch {
-    throw new Error(`Cannot reach the API at ${API_URL}. Start the backend service or set NEXT_PUBLIC_API_URL to your deployed backend URL.`);
+    throw new Error("Cannot reach the API proxy. Confirm the frontend service is deployed with BACKEND_API_URL pointing to the live backend.");
   }
   if (!response.ok) {
     const payload = await response.json().catch(() => ({ detail: "Request failed" }));
@@ -46,6 +50,13 @@ export async function register(payload: Record<string, unknown>) {
   return request<{ access_token: string; user: User }>("/api/auth/register", {
     method: "POST",
     body: JSON.stringify(payload),
+  });
+}
+
+export async function forgotPassword(email: string) {
+  return request<{ message: string }>("/api/auth/forgot-password", {
+    method: "POST",
+    body: JSON.stringify({ email }),
   });
 }
 
