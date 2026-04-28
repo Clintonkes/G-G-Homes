@@ -39,12 +39,25 @@ async function proxy(request: NextRequest, params: { path: string[] }) {
   const method = request.method.toUpperCase();
   const body = method === "GET" || method === "HEAD" ? undefined : await request.text();
 
-  const response = await fetch(upstreamUrl, {
-    method,
-    headers,
-    body,
-    cache: "no-store",
-  });
+  let response: Response;
+  try {
+    response = await fetch(upstreamUrl, {
+      method,
+      headers,
+      body,
+      cache: "no-store",
+    });
+  } catch (error) {
+    console.error("Backend proxy fetch failed", {
+      upstreamUrl,
+      method,
+      message: error instanceof Error ? error.message : String(error),
+    });
+    return NextResponse.json(
+      { detail: "Backend service is unreachable from the frontend proxy." },
+      { status: 502 },
+    );
+  }
 
   return new NextResponse(response.body, {
     status: response.status,

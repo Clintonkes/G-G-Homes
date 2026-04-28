@@ -21,11 +21,22 @@ async function request<T>(path: string, init: RequestInit = {}, token?: string |
       headers,
       cache: "no-store",
     });
-  } catch {
+  } catch (error) {
+    console.error("API proxy request failed", {
+      path,
+      method: init.method ?? "GET",
+      message: error instanceof Error ? error.message : String(error),
+    });
     throw new Error("Cannot reach the API proxy. Confirm the frontend service is deployed with BACKEND_API_URL pointing to the live backend.");
   }
   if (!response.ok) {
     const payload = await response.json().catch(() => ({ detail: "Request failed" }));
+    console.error("API responded with an error", {
+      path,
+      method: init.method ?? "GET",
+      status: response.status,
+      detail: payload.detail ?? "Request failed",
+    });
     throw new Error(payload.detail ?? "Request failed");
   }
   return response.json();
