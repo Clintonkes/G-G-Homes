@@ -75,6 +75,13 @@ export async function fetchMe(token: string) {
   return request<User>("/api/auth/me", {}, token);
 }
 
+export async function updateMe(token: string, payload: Partial<User>) {
+  return request<User>("/api/users/me", {
+    method: "PATCH",
+    body: JSON.stringify(payload),
+  }, token);
+}
+
 export async function fetchAppointments(token: string) {
   return request<Appointment[]>("/api/appointments", {}, token);
 }

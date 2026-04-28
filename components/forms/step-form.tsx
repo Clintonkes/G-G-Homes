@@ -5,12 +5,18 @@ export function StepForm({
   currentStep,
   onNext,
   onBack,
+  nextLabel,
+  isLastStep = false,
+  disableNext = false,
   children,
 }: {
   steps: string[];
   currentStep: number;
   onNext: () => void;
   onBack: () => void;
+  nextLabel?: string;
+  isLastStep?: boolean;
+  disableNext?: boolean;
   children: React.ReactNode;
 }) {
   return (
@@ -24,8 +30,22 @@ export function StepForm({
       </div>
       {children}
       <div className="flex justify-between">
-        <button type="button" onClick={onBack} className="rounded-full border border-brand-border px-5 py-3 text-sm font-semibold">Back</button>
-        <button type="button" onClick={onNext} className="rounded-full bg-brand-gold px-5 py-3 text-sm font-semibold text-brand-black">Next</button>
+        <button
+          type="button"
+          onClick={onBack}
+          disabled={currentStep === 0}
+          className="rounded-full border border-brand-border px-5 py-3 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          Back
+        </button>
+        <button
+          type={isLastStep ? "submit" : "button"}
+          onClick={isLastStep ? undefined : onNext}
+          disabled={disableNext}
+          className="rounded-full bg-brand-gold px-5 py-3 text-sm font-semibold text-brand-black disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          {nextLabel ?? (isLastStep ? "Submit" : "Next")}
+        </button>
       </div>
     </div>
   );

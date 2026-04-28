@@ -1,10 +1,9 @@
 import type { Metadata } from "next";
 
 import "@/app/globals.css";
+import { AppShell } from "@/components/layout/app-shell";
 import { ApiDebugLine } from "@/components/layout/api-debug-line";
 import { QueryProvider } from "@/components/providers/query-provider";
-import { Footer } from "@/components/layout/footer";
-import { Navbar } from "@/components/layout/navbar";
 
 export const metadata: Metadata = {
   title: "G & G Homes",
@@ -23,10 +22,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <div className="absolute bottom-[8%] right-[-6%] h-96 w-96 rounded-full bg-brand-gold/10 blur-3xl" />
         </div>
         <QueryProvider>
-          <Navbar />
-          {children}
-          <Footer />
-          <ApiDebugLine proxyTarget={proxyTarget} />
+          <AppShell proxyTarget={proxyTarget}>{children}</AppShell>
         </QueryProvider>
       </body>
     </html>

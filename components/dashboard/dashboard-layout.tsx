@@ -1,15 +1,20 @@
 "use client";
 
 import { Home, Bell, CreditCard, Heart, LayoutDashboard, PlusCircle, Search, Settings } from "lucide-react";
+import { LogOut } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 
 import { BrandLockup } from "@/components/layout/brand-lockup";
 import { cn, initialsFromName } from "@/lib/utils";
 import { useAuthStore } from "@/lib/store";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 
 const items = [
   { key: "overview", label: "Overview", icon: LayoutDashboard },
   { key: "search", label: "Search", icon: Search },
-  { key: "saved", label: "Saved", icon: Heart },
+  { key: "saved", label: "My Listings", icon: Heart },
   { key: "appointments", label: "Appointments", icon: Home },
   { key: "payments", label: "Payments", icon: CreditCard },
   { key: "list-property", label: "List Property", icon: PlusCircle },
@@ -27,6 +32,14 @@ export function DashboardLayout({
   children: React.ReactNode;
 }) {
   const user = useAuthStore((state) => state.user);
+  const clearSession = useAuthStore((state) => state.clearSession);
+  const router = useRouter();
+  const [logoutOpen, setLogoutOpen] = useState(false);
+
+  const handleLogout = () => {
+    clearSession();
+    router.push("/login");
+  };
 
   return (
     <div className="mx-auto grid max-w-7xl gap-6 px-4 pb-16 pt-28 md:grid-cols-[280px_1fr] md:px-6">
@@ -59,9 +72,30 @@ export function DashboardLayout({
               </button>
             );
           })}
+          <button
+            onClick={() => setLogoutOpen(true)}
+            className="flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-left text-sm font-medium text-brand-white/80 transition hover:bg-brand-white/10"
+          >
+            <LogOut className="h-4 w-4" />
+            Logout
+          </button>
         </nav>
       </aside>
       <main>{children}</main>
+      <Dialog open={logoutOpen} onOpenChange={setLogoutOpen}>
+        <DialogContent className="max-w-md">
+          <div className="space-y-4">
+            <h3>Log out of your account?</h3>
+            <p className="text-sm leading-7 text-brand-gray">
+              You will need to sign in again to access your dashboard, saved activity, and listing tools.
+            </p>
+            <div className="flex justify-end gap-3">
+              <Button variant="outline" type="button" onClick={() => setLogoutOpen(false)}>Cancel</Button>
+              <Button variant="dark" type="button" onClick={handleLogout}>Log Out</Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
