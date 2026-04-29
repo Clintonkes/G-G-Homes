@@ -1,5 +1,9 @@
 import { Property, User, Appointment, Payment, NotificationItem } from "@/lib/types";
 
+type RequestOptions = {
+  silent?: boolean;
+};
+
 function getAppOrigin() {
   if (typeof window !== "undefined") return "";
 
@@ -7,43 +11,65 @@ function getAppOrigin() {
   return raw.startsWith("http") ? raw : `https://${raw}`;
 }
 
-async function request<T>(path: string, init: RequestInit = {}, token?: string | null): Promise<T> {
+function getServerApiOrigin() {
+  const raw = process.env.BACKEND_API_URL?.trim() || process.env.NEXT_PUBLIC_API_URL?.trim();
+  if (!raw) return getAppOrigin();
+  return raw.endsWith("/") ? raw.slice(0, -1) : raw;
+}
+
+async function request<T>(path: string, init: RequestInit = {}, token?: string | null, options: RequestOptions = {}): Promise<T> {
   const headers = new Headers(init.headers);
   headers.set("Content-Type", "application/json");
   if (token) {
     headers.set("Authorization", `Bearer ${token}`);
   }
 
+  const method = init.method ?? "GET";
+  const inBrowser = typeof window !== "undefined";
+  const origin = inBrowser ? getAppOrigin() : getServerApiOrigin();
+  const fetchOptions: RequestInit & { next?: { revalidate?: number | false } } = {
+    ...init,
+    headers,
+  };
+
+  if (inBrowser) {
+    fetchOptions.cache = "no-store";
+  } else if (method === "GET" || method === "HEAD") {
+    fetchOptions.next = { revalidate: 300 };
+  } else {
+    fetchOptions.cache = "no-store";
+  }
+
   let response: Response;
   try {
-    response = await fetch(`${getAppOrigin()}${path}`, {
-      ...init,
-      headers,
-      cache: "no-store",
-    });
+    response = await fetch(`${origin}${path}`, fetchOptions);
   } catch (error) {
-    console.error("API proxy request failed", {
-      path,
-      method: init.method ?? "GET",
-      message: error instanceof Error ? error.message : String(error),
-    });
+    if (!options.silent) {
+      console.error("API proxy request failed", {
+        path,
+        method,
+        message: error instanceof Error ? error.message : String(error),
+      });
+    }
     throw new Error("Cannot reach the API proxy. Confirm the frontend service is deployed with BACKEND_API_URL pointing to the live backend.");
   }
   if (!response.ok) {
     const payload = await response.json().catch(() => ({ detail: "Request failed" }));
-    console.error("API responded with an error", {
-      path,
-      method: init.method ?? "GET",
-      status: response.status,
-      detail: payload.detail ?? "Request failed",
-    });
+    if (!options.silent) {
+      console.error("API responded with an error", {
+        path,
+        method,
+        status: response.status,
+        detail: payload.detail ?? "Request failed",
+      });
+    }
     throw new Error(payload.detail ?? "Request failed");
   }
   return response.json();
 }
 
-export async function fetchProperties(params = "") {
-  return request<{ items: Property[]; total: number; page: number; page_size: number }>(`/api/properties${params}`);
+export async function fetchProperties(params = "", options?: RequestOptions) {
+  return request<{ items: Property[]; total: number; page: number; page_size: number }>(`/api/properties${params}`, {}, undefined, options);
 }
 
 export async function fetchProperty(id: string, token?: string | null) {

@@ -42,8 +42,8 @@ export function DashboardLayout({
   };
 
   return (
-    <div className="mx-auto grid max-w-7xl gap-6 px-4 pb-16 pt-28 md:grid-cols-[280px_1fr] md:px-6">
-      <aside className="rounded-[2rem] bg-brand-black p-6 text-brand-white">
+    <div className="mx-auto grid max-w-7xl items-start gap-6 px-4 pb-16 pt-6 md:grid-cols-[280px_minmax(0,1fr)] md:px-6 md:pt-8">
+      <aside className="rounded-[2rem] bg-brand-black p-6 text-brand-white md:sticky md:top-6 md:max-h-[calc(100vh-3rem)] md:overflow-y-auto">
         <BrandLockup
           className="items-start"
           markWidth={48}
@@ -81,7 +81,7 @@ export function DashboardLayout({
           </button>
         </nav>
       </aside>
-      <main>{children}</main>
+      <main className="min-w-0">{children}</main>
       <Dialog open={logoutOpen} onOpenChange={setLogoutOpen}>
         <DialogContent className="max-w-md">
           <div className="space-y-4">

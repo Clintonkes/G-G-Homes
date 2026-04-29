@@ -8,7 +8,7 @@ export default async function PropertiesPage({ searchParams }: { searchParams: R
   Object.entries(searchParams).forEach(([key, value]) => {
     if (typeof value === "string") params.set(key, value);
   });
-  const data = await fetchProperties(`?${params.toString()}`).catch(() => ({ items: [], total: 0, page: 1, page_size: 12 }));
+  const data = await fetchProperties(`?${params.toString()}`, { silent: true }).catch(() => ({ items: [], total: 0, page: 1, page_size: 12 }));
 
   return (
     <main className="mx-auto max-w-7xl px-4 pb-20 pt-28 md:px-6">

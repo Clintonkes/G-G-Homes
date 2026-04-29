@@ -20,7 +20,7 @@ const stats = [
 ];
 
 export default async function HomePage() {
-  const featured = await fetchProperties("?page_size=6").catch(() => ({ items: [], total: 0, page: 1, page_size: 6 }));
+  const featured = await fetchProperties("?page_size=6", { silent: true }).catch(() => ({ items: [], total: 0, page: 1, page_size: 6 }));
 
   return (
     <main>
