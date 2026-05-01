@@ -22,7 +22,7 @@ const items = [
   { key: "settings", label: "Settings", icon: Settings },
 ];
 
-export function DashboardLayout({
+export function DashboardLayout ({
   active,
   onSelect,
   children,
@@ -42,23 +42,25 @@ export function DashboardLayout({
   };
 
   return (
-    <div className="mx-auto grid max-w-7xl items-start gap-6 px-4 pb-16 pt-6 md:grid-cols-[280px_minmax(0,1fr)] md:px-6 md:pt-8">
-      <aside className="rounded-[2rem] bg-brand-black p-6 text-brand-white md:sticky md:top-6 md:max-h-[calc(100vh-3rem)] md:overflow-y-auto">
-        <BrandLockup
-          className="items-start"
-          markWidth={48}
-          titleClassName="text-xl"
-          subtitle="Unified real estate workspace"
-          subtitleClassName="text-sm text-brand-gray"
-        />
-        <div className="mt-8 flex items-center gap-4 rounded-3xl bg-brand-white/5 p-4">
-          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-brand-gold text-brand-black">{initialsFromName(user?.full_name ?? "GG")}</div>
-          <div>
-            <p className="font-semibold">{user?.full_name ?? "Guest User"}</p>
-            <p className="text-sm text-brand-gray">{user ? "Unified renter / landlord access" : "Guest access"}</p>
+    <div className="mx-auto grid max-w-7xl gap-6 px-4 pb-16 pt-6 md:h-[calc(100vh-2rem)] md:grid-cols-[280px_minmax(0,1fr)] md:px-6 md:pb-6 md:pt-8">
+      <aside className="rounded-[2rem] bg-brand-black p-6 text-brand-white md:flex md:h-full md:flex-col md:overflow-hidden">
+        <div className="shrink-0">
+          <BrandLockup
+            className="items-start"
+            markWidth={48}
+            titleClassName="text-xl"
+            subtitle="Unified real estate workspace"
+            subtitleClassName="text-sm text-brand-gray"
+          />
+          <div className="mt-8 flex items-center gap-4 rounded-3xl bg-brand-white/5 p-4">
+            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-brand-gold text-brand-black">{initialsFromName(user?.full_name ?? "GG")}</div>
+            <div>
+              <p className="font-semibold">{user?.full_name ?? "Guest User"}</p>
+              <p className="text-sm text-brand-gray">{user ? "Unified renter / landlord access" : "Guest access"}</p>
+            </div>
           </div>
         </div>
-        <nav className="mt-8 space-y-2">
+        <nav className="mt-8 space-y-2 md:flex-1 md:overflow-y-auto md:overscroll-contain md:pr-1 scrollbar-hidden">
           {items.map((item) => {
             const Icon = item.icon;
             return (
@@ -81,7 +83,7 @@ export function DashboardLayout({
           </button>
         </nav>
       </aside>
-      <main className="min-w-0">{children}</main>
+      <main className="min-w-0 md:h-full md:overflow-y-auto md:overscroll-contain md:pr-1 scrollbar-hidden">{children}</main>
       <Dialog open={logoutOpen} onOpenChange={setLogoutOpen}>
         <DialogContent className="max-w-md">
           <div className="space-y-4">

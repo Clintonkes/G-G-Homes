@@ -31,8 +31,8 @@ export default async function PropertyDetailPage({ params }: { params: { id: str
             </div>
             <h1>{property.title}</h1>
             <p className="flex items-center gap-2 text-brand-gray"><MapPin className="h-4 w-4" /> {property.address}</p>
-            <PriceDisplay amount={property.annual_rent} size="lg" />
-            <p className="text-sm text-brand-gray">Monthly equivalent: {Math.round(property.annual_rent / 12).toLocaleString("en-NG")} NGN</p>
+            <PriceDisplay amount={property.annual_rent} currency={property.currency} size="lg" />
+            <p className="text-sm text-brand-gray">Monthly equivalent: {Math.round(property.annual_rent / 12).toLocaleString("en-NG")} {property.currency}</p>
           </div>
 
           <div className="grid gap-4 md:grid-cols-4">
@@ -67,7 +67,7 @@ export default async function PropertyDetailPage({ params }: { params: { id: str
         <Reveal delay={0.1} className="lg:sticky lg:top-28 lg:h-fit">
           <Card className="interactive-panel border-brand-gold bg-white">
             <CardContent className="space-y-5">
-              <PriceDisplay amount={property.annual_rent} size="lg" />
+              <PriceDisplay amount={property.annual_rent} currency={property.currency} size="lg" />
               <p className="text-sm leading-7 text-brand-gray">
                 This property is listed by a verified landlord through G &amp; G Homes. We connect you directly, and no agent fees apply.
               </p>

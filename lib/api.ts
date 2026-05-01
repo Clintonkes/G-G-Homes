@@ -138,6 +138,26 @@ export async function createProperty(token: string, payload: Record<string, unkn
   }, token);
 }
 
+export async function uploadAsset(token: string, file: File) {
+  const formData = new FormData();
+  formData.append("file", file);
+
+  const response = await fetch("/api/upload", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+    body: formData,
+  });
+
+  if (!response.ok) {
+    const payload = await response.json().catch(() => ({ detail: "Upload failed" }));
+    throw new Error(payload.detail ?? "Upload failed");
+  }
+
+  return response.json() as Promise<{ url: string; uploaded_by: string }>;
+}
+
 export async function initializePayment(token: string, payload: Record<string, unknown>) {
   return request<{ checkout_url: string }>("/api/payments/initialize", {
     method: "POST",

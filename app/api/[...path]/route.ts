@@ -37,7 +37,7 @@ async function proxy(request: NextRequest, params: { path: string[] }) {
   if (accept) headers.set("accept", accept);
 
   const method = request.method.toUpperCase();
-  const body = method === "GET" || method === "HEAD" ? undefined : await request.text();
+  const body = method === "GET" || method === "HEAD" ? undefined : Buffer.from(await request.arrayBuffer());
 
   let response: Response;
   try {

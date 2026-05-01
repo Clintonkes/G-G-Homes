@@ -38,4 +38,13 @@
   .interactive-panel {
     @apply rounded-[2rem] border border-brand-gold/15 bg-white/5 backdrop-blur-sm transition duration-700 ease-out hover:-translate-y-1 hover:scale-[1.02] hover:border-brand-gold/35 hover:shadow-[0_26px_80px_rgba(0,0,0,0.2)];
   }
+
+  .scrollbar-hidden {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  .scrollbar-hidden::-webkit-scrollbar {
+    display: none;
+  }
 }

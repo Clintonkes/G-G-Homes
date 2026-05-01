@@ -11,7 +11,10 @@ import {
   Search,
   ShieldCheck,
   Sparkles,
+  Upload,
+  X,
 } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 import {
   createProperty,
@@ -20,11 +23,13 @@ import {
   fetchPayments,
   fetchProperties,
   updateMe,
+  uploadAsset,
 } from "@/lib/api";
 import { useAuthStore } from "@/lib/store";
 import { DashboardLayout } from "@/components/dashboard/dashboard-layout";
 import { RentalReminderBanner } from "@/components/dashboard/rental-reminder-banner";
 import { StepForm } from "@/components/forms/step-form";
+import { UploadZone } from "@/components/forms/upload-zone";
 import { PropertyCard } from "@/components/properties/property-card";
 import { StatusBadge } from "@/components/properties/status-badge";
 import { Badge } from "@/components/ui/badge";
@@ -35,6 +40,7 @@ import { Switch } from "@/components/ui/switch";
 import { Table } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
+import { formatMoney } from "@/lib/utils";
 
 type DashboardSection =
   | "overview"
@@ -58,10 +64,11 @@ type PropertyFormValues = {
   bathrooms: string;
   toilets: string;
   annual_rent: string;
+  currency: string;
   security_deposit: string;
   amenities: string;
-  photo_urls: string;
-  document_urls: string;
+  photo_urls: string[];
+  document_urls: string[];
   is_furnished: boolean;
   has_water: boolean;
   has_electricity: boolean;
@@ -82,25 +89,19 @@ type PreferencesState = {
   listingDigest: boolean;
 };
 
-const propertyTypes = [
-  "Flat",
-  "Duplex",
-  "Mini Flat",
-  "Studio",
-  "Bungalow",
-  "Office Space",
-  "Shop",
-  "Warehouse",
+const propertyTypeOptions = [
+  { value: "SELF_CONTAIN", label: "Self Contain" },
+  { value: "FLAT", label: "Flat" },
+  { value: "DUPLEX", label: "Duplex" },
+  { value: "BUNGALOW", label: "Bungalow" },
+  { value: "OFFICE_SPACE", label: "Office Space" },
+  { value: "WAREHOUSE", label: "Warehouse" },
 ];
+
+const currencyOptions = ["NGN", "USD", "GBP", "EUR", "KES", "GHS", "ZAR"];
+const commercialPropertyTypes = new Set(["OFFICE_SPACE", "WAREHOUSE"]);
 
 const listingSteps = ["Property Basics", "Location & Pricing", "Media & Amenities"];
-
-const listingStepFields: Array<Array<keyof PropertyFormValues>> = [
-  ["title", "property_type", "description"],
-  ["address", "neighbourhood", "city", "state", "bedrooms", "bathrooms", "toilets", "annual_rent"],
-  ["amenities", "photo_urls", "document_urls"],
-];
-
 const defaultPreferences: PreferencesState = {
   productUpdates: true,
   instantAlerts: true,
@@ -157,7 +158,34 @@ function EmptyState({
   );
 }
 
+function FilePills({
+  urls,
+  onRemove,
+}: {
+  urls: string[];
+  onRemove: (value: string) => void;
+}) {
+  if (!urls.length) return null;
+
+  return (
+    <div className="flex flex-wrap gap-2">
+      {urls.map((url, index) => (
+        <div
+          key={url}
+          className="inline-flex items-center gap-2 rounded-full border border-brand-border bg-white px-3 py-2 text-xs text-brand-dark-text"
+        >
+          <span className="max-w-[12rem] truncate">{`File ${index + 1}`}</span>
+          <button type="button" onClick={() => onRemove(url)} className="text-brand-gray hover:text-brand-red">
+            <X className="h-3.5 w-3.5" />
+          </button>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export default function DashboardPage() {
+  const router = useRouter();
   const [active, setActive] = useState<DashboardSection>("overview");
   const [propertyStep, setPropertyStep] = useState(0);
   const [searchTerm, setSearchTerm] = useState("");
@@ -166,6 +194,8 @@ export default function DashboardPage() {
   const [settingsMessage, setSettingsMessage] = useState<string | null>(null);
   const [settingsError, setSettingsError] = useState<string | null>(null);
   const [preferences, setPreferences] = useState<PreferencesState>(defaultPreferences);
+  const [uploadingPhotos, setUploadingPhotos] = useState(false);
+  const [uploadingDocuments, setUploadingDocuments] = useState(false);
 
   const deferredSearch = useDeferredValue(searchTerm);
   const token = useAuthStore((state) => state.token);
@@ -201,8 +231,8 @@ export default function DashboardPage() {
     queryFn: () =>
       fetchProperties(
         deferredSearch.trim()
-          ? `?q=${encodeURIComponent(deferredSearch.trim())}&page_size=6`
-          : "?page_size=6",
+          ? `?q=${encodeURIComponent(deferredSearch.trim())}&page_size=8`
+          : "?page_size=8",
       ),
     enabled: !!token,
   });
@@ -225,10 +255,11 @@ export default function DashboardPage() {
       bathrooms: "",
       toilets: "",
       annual_rent: "",
+      currency: "NGN",
       security_deposit: "",
       amenities: "",
-      photo_urls: "",
-      document_urls: "",
+      photo_urls: [],
+      document_urls: [],
       is_furnished: false,
       has_water: true,
       has_electricity: true,
@@ -246,6 +277,12 @@ export default function DashboardPage() {
     },
   });
 
+  const propertyType = propertyForm.watch("property_type");
+  const isCommercialListing = commercialPropertyTypes.has(propertyType);
+  const photoUrls = propertyForm.watch("photo_urls");
+  const documentUrls = propertyForm.watch("document_urls");
+  const showSuggestions = Boolean(searchTerm.trim()) && Boolean(searchResults.data?.items.length);
+
   useEffect(() => {
     if (!user) return;
     settingsForm.reset({
@@ -255,6 +292,21 @@ export default function DashboardPage() {
       id_document_url: user.id_document_url ?? "",
     });
   }, [settingsForm, user]);
+
+  useEffect(() => {
+    if (!isCommercialListing) return;
+    propertyForm.setValue("bedrooms", "0");
+    propertyForm.setValue("bathrooms", "0");
+  }, [isCommercialListing, propertyForm]);
+
+  useEffect(() => {
+    propertyForm.register("photo_urls", {
+      validate: (value) => value.length >= 3 || "At least 3 property photos are required.",
+    });
+    propertyForm.register("document_urls", {
+      validate: (value) => value.length >= 1 || "At least 1 ownership document is required.",
+    });
+  }, [propertyForm]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -272,14 +324,67 @@ export default function DashboardPage() {
     window.localStorage.setItem("gg-homes-dashboard-preferences", JSON.stringify(preferences));
   }, [preferences]);
 
+  const handleFileUpload = async (field: "photo_urls" | "document_urls", files: File[]) => {
+    if (!token || !files.length) return;
+
+    const setUploading = field === "photo_urls" ? setUploadingPhotos : setUploadingDocuments;
+    try {
+      setListingError(null);
+      setUploading(true);
+      const uploaded = await Promise.all(files.map((file) => uploadAsset(token, file)));
+      const nextUrls = [...propertyForm.getValues(field), ...uploaded.map((item) => item.url)];
+      propertyForm.setValue(field, nextUrls, { shouldValidate: true, shouldDirty: true });
+      await propertyForm.trigger(field);
+    } catch (error) {
+      setListingError(error instanceof Error ? error.message : "Upload failed.");
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const removeUploadedFile = (field: "photo_urls" | "document_urls", url: string) => {
+    const nextUrls = propertyForm.getValues(field).filter((item) => item !== url);
+    propertyForm.setValue(field, nextUrls, { shouldValidate: true, shouldDirty: true });
+    propertyForm.trigger(field);
+  };
+
   const goToNextListingStep = async () => {
-    const isValid = await propertyForm.trigger(listingStepFields[propertyStep]);
+    let fields: Array<keyof PropertyFormValues> = [];
+
+    if (propertyStep === 0) {
+      fields = ["title", "property_type", "description"];
+    }
+
+    if (propertyStep === 1) {
+      fields = [
+        "address",
+        "neighbourhood",
+        "city",
+        "state",
+        "toilets",
+        "annual_rent",
+        "currency",
+        "security_deposit",
+      ];
+      if (!isCommercialListing) {
+        fields.push("bedrooms", "bathrooms");
+      }
+    }
+
+    if (propertyStep === 2) {
+      fields = ["amenities", "photo_urls", "document_urls"];
+    }
+
+    const isValid = await propertyForm.trigger(fields);
     if (!isValid) return;
     setPropertyStep((current) => Math.min(current + 1, listingSteps.length - 1));
   };
 
   const submitProperty = propertyForm.handleSubmit(async (values) => {
     if (!token) return;
+    const isValid = await propertyForm.trigger();
+    if (!isValid) return;
+
     try {
       setListingError(null);
       setListingMessage(null);
@@ -291,15 +396,16 @@ export default function DashboardPage() {
         city: values.city,
         state: values.state,
         property_type: values.property_type,
-        bedrooms: Number(values.bedrooms),
-        bathrooms: Number(values.bathrooms),
+        bedrooms: isCommercialListing ? 0 : Number(values.bedrooms),
+        bathrooms: isCommercialListing ? 0 : Number(values.bathrooms),
         toilets: Number(values.toilets),
         annual_rent: Number(values.annual_rent),
-        security_deposit: values.security_deposit ? Number(values.security_deposit) : 0,
+        currency: values.currency,
+        security_deposit: Number(values.security_deposit),
         amenities: splitCsv(values.amenities),
-        photo_urls: splitCsv(values.photo_urls),
+        photo_urls: values.photo_urls,
         video_urls: [],
-        document_urls: splitCsv(values.document_urls),
+        document_urls: values.document_urls,
         is_furnished: values.is_furnished,
         has_water: values.has_water,
         has_electricity: values.has_electricity,
@@ -396,103 +502,6 @@ export default function DashboardPage() {
                 </Card>
               ))}
             </div>
-            <div className="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
-              <Card className="bg-white/95">
-                <CardContent className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-xs font-semibold uppercase tracking-[0.14em] text-brand-gold">
-                        Listing Pulse
-                      </p>
-                      <h2 className="mt-2 text-2xl text-brand-dark-text">Your latest listings</h2>
-                    </div>
-                    <Button variant="ghost" onClick={() => setActive("saved")}>
-                      View All
-                    </Button>
-                  </div>
-                  {myListings.data?.items.length ? (
-                    <div className="space-y-4">
-                      {myListings.data.items.slice(0, 2).map((property) => (
-                        <div
-                          key={property.id}
-                          className="rounded-3xl border border-brand-border bg-brand-cream/40 p-4"
-                        >
-                          <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
-                            <div>
-                              <p className="text-lg font-semibold text-brand-dark-text">{property.title}</p>
-                              <p className="mt-2 flex items-center gap-2 text-sm text-brand-gray">
-                                <MapPin className="h-4 w-4" />
-                                {property.neighbourhood}, {property.city}
-                              </p>
-                            </div>
-                            <StatusBadge value={property.status} />
-                          </div>
-                          <div className="mt-4 flex flex-wrap gap-2">
-                            {property.is_verified ? (
-                              <Badge className="border-brand-green/30 text-brand-green">Verified</Badge>
-                            ) : null}
-                            <Badge>{property.property_type.replaceAll("_", " ")}</Badge>
-                            <Badge>NGN {property.annual_rent.toLocaleString("en-NG")} / year</Badge>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <EmptyState
-                      title="No listings yet"
-                      description="Start with the guided 3-step listing wizard and your properties will appear here as soon as you submit them."
-                      action={
-                        <div className="pt-2">
-                          <Button onClick={() => setActive("list-property")}>Start Listing</Button>
-                        </div>
-                      }
-                    />
-                  )}
-                </CardContent>
-              </Card>
-              <Card className="bg-white/95">
-                <CardContent className="space-y-4">
-                  <div className="flex items-center gap-3">
-                    <div className="rounded-2xl bg-brand-gold/10 p-3 text-brand-gold">
-                      <Sparkles className="h-5 w-5" />
-                    </div>
-                    <div>
-                      <p className="text-xs font-semibold uppercase tracking-[0.14em] text-brand-gold">
-                        Smart Search
-                      </p>
-                      <h2 className="mt-1 text-2xl text-brand-dark-text">Jump back into discovery</h2>
-                    </div>
-                  </div>
-                  <p className="text-sm leading-7 text-brand-gray">
-                    Search live inventory, filter by what matters, and discover likely matches as you type.
-                  </p>
-                  <Button variant="dark" onClick={() => setActive("search")}>
-                    Open Search Workspace
-                  </Button>
-                  <div className="rounded-3xl border border-brand-border bg-brand-cream/40 p-4">
-                    <p className="text-sm font-semibold text-brand-dark-text">Fast actions</p>
-                    <div className="mt-4 grid gap-3">
-                      <button
-                        type="button"
-                        onClick={() => setActive("appointments")}
-                        className="flex items-center justify-between rounded-2xl bg-white px-4 py-3 text-left text-sm font-medium text-brand-dark-text"
-                      >
-                        View appointments
-                        <ArrowRight className="h-4 w-4 text-brand-gold" />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setActive("settings")}
-                        className="flex items-center justify-between rounded-2xl bg-white px-4 py-3 text-left text-sm font-medium text-brand-dark-text"
-                      >
-                        Update account settings
-                        <ArrowRight className="h-4 w-4 text-brand-gold" />
-                      </button>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
           </>
         ) : null}
 
@@ -501,30 +510,57 @@ export default function DashboardPage() {
             <SectionHeader
               eyebrow="Search Workspace"
               title="Discover properties as you type."
-              description="Enter a title, neighbourhood, address, or city. Results update continuously so the experience feels instant and exploratory."
+              description="Search suggestions now respond to neighbourhood, city, and state together, so people can reach the right listing with less effort."
             />
             <div className="grid gap-6 xl:grid-cols-[420px_1fr]">
               <Card className="bg-white/95">
                 <CardContent className="space-y-5">
                   <div className="rounded-[2rem] border border-brand-border bg-brand-cream/40 p-5">
                     <label className="text-sm font-semibold text-brand-dark-text">Search listings</label>
-                    <div className="mt-3 flex items-center gap-3 rounded-2xl border border-brand-border bg-white px-4 py-3">
-                      <Search className="h-5 w-5 text-brand-gold" />
-                      <input
-                        value={searchTerm}
-                        onChange={(event) => setSearchTerm(event.target.value)}
-                        placeholder="Try Lekki, duplex, waterfront, 3 bedroom..."
-                        className="w-full border-0 bg-transparent text-base text-brand-dark-text outline-none placeholder:text-brand-gray"
-                      />
+                    <div className="relative mt-3">
+                      <div className="flex items-center gap-3 rounded-2xl border border-brand-border bg-white px-4 py-3">
+                        <Search className="h-5 w-5 text-brand-gold" />
+                        <input
+                          value={searchTerm}
+                          onChange={(event) => setSearchTerm(event.target.value)}
+                          placeholder="Try Lekki, Asokoro, Ikeja, Abuja, Lagos..."
+                          className="w-full border-0 bg-transparent text-base text-brand-dark-text outline-none placeholder:text-brand-gray"
+                        />
+                      </div>
+                      {showSuggestions ? (
+                        <div className="absolute left-0 right-0 top-[calc(100%+0.75rem)] z-30 rounded-[1.5rem] border border-brand-border bg-white p-3 shadow-[0_24px_60px_rgba(0,0,0,0.18)]">
+                          <p className="px-3 pb-2 text-xs font-semibold uppercase tracking-[0.14em] text-brand-gold">
+                            Suggestions from your database
+                          </p>
+                          <div className="space-y-2">
+                            {searchResults.data?.items.slice(0, 6).map((property) => (
+                              <button
+                                key={property.id}
+                                type="button"
+                                onClick={() => router.push(`/properties/${property.id}`)}
+                                className="flex w-full items-start justify-between rounded-2xl px-3 py-3 text-left transition hover:bg-brand-cream"
+                              >
+                                <div>
+                                  <p className="font-semibold text-brand-dark-text">{property.title}</p>
+                                  <p className="mt-1 text-sm text-brand-gray">
+                                    {property.neighbourhood}, {property.city}, {property.state}
+                                  </p>
+                                </div>
+                                <ArrowRight className="mt-1 h-4 w-4 text-brand-gold" />
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      ) : null}
                     </div>
                     <p className="mt-3 text-sm leading-7 text-brand-gray">
-                      Results refresh while you type so you can spot relevant listings immediately.
+                      As users type, matching locations and properties are pulled from your live inventory.
                     </p>
                   </div>
                   <div className="space-y-3">
                     <p className="text-sm font-semibold text-brand-dark-text">Quick prompts</p>
                     <div className="flex flex-wrap gap-2">
-                      {["2 bedroom flat", "duplex in lekki", "student studio", "office space"].map((term) => (
+                      {["Lekki Lagos", "Asokoro Abuja", "Ikeja Lagos", "Kisumu Kenya"].map((term) => (
                         <button
                           key={term}
                           type="button"
@@ -542,7 +578,7 @@ export default function DashboardPage() {
                       <p className="font-semibold">Discovery insights</p>
                     </div>
                     <p className="mt-3 text-sm leading-7 text-brand-white/75">
-                      Use broad phrases first, then narrow with a neighbourhood or property type for sharper matches.
+                      The suggestion layer now favors location signals so users can go straight from search intent into property acquisition.
                     </p>
                   </div>
                 </CardContent>
@@ -560,9 +596,6 @@ export default function DashboardPage() {
                     </div>
                     <Badge>{searchResults.data?.total ?? 0} found</Badge>
                   </div>
-                  {searchResults.isLoading ? (
-                    <p className="text-sm text-brand-gray">Refreshing results...</p>
-                  ) : null}
                   {searchResults.data?.items.length ? (
                     <div className="grid gap-5">
                       {searchResults.data.items.map((property) => (
@@ -572,7 +605,7 @@ export default function DashboardPage() {
                   ) : (
                     <EmptyState
                       title="No matches yet"
-                      description="Try a broader location, a shorter phrase, or a different property type to expand the search."
+                      description="Try a broader neighbourhood, city, or state phrase to surface more suggestions and results."
                     />
                   )}
                 </CardContent>
@@ -586,7 +619,7 @@ export default function DashboardPage() {
             <SectionHeader
               eyebrow="My Listings"
               title="Properties you have listed"
-              description="This section now focuses on the properties tied to your account, including pending verification, active listings, and any listing metadata you need to track."
+              description="This section focuses on the properties tied to your account, including pending verification, active listings, and listing metadata."
               action={
                 <Button variant="outline" onClick={() => setActive("list-property")}>
                   Add Another Listing
@@ -607,6 +640,7 @@ export default function DashboardPage() {
                           <Badge>Awaiting verification</Badge>
                         )}
                         <Badge>{property.city}</Badge>
+                        <Badge>{formatMoney(property.annual_rent, property.currency)}</Badge>
                       </div>
                       <p className="mt-3 text-sm leading-7 text-brand-gray">
                         Created on {new Date(property.created_at).toLocaleDateString()} and visible in your landlord workspace.
@@ -758,7 +792,7 @@ export default function DashboardPage() {
             <SectionHeader
               eyebrow="List Property"
               title="Create a listing in three clean steps"
-              description="The long scrolling form has been replaced with a guided workflow so you can move from details to pricing to media with less friction."
+              description="The form adapts to the type of property, supports flexible currencies, and now uses proper side-by-side multi-upload boxes for photos and documents."
             />
             <Card className="bg-white/95">
               <CardContent className="space-y-6">
@@ -786,30 +820,35 @@ export default function DashboardPage() {
                         <Input
                           placeholder="Property title"
                           className="md:col-span-2"
-                          {...propertyForm.register("title", { required: true })}
+                          {...propertyForm.register("title", { required: "Property title is required." })}
                         />
-                        <div className="space-y-3 md:col-span-2">
-                          <Input
-                            placeholder="Property type"
-                            {...propertyForm.register("property_type", { required: true })}
-                          />
-                          <div className="flex flex-wrap gap-2">
-                            {propertyTypes.map((type) => (
-                              <button
-                                key={type}
-                                type="button"
-                                onClick={() => propertyForm.setValue("property_type", type)}
-                                className="rounded-full border border-brand-border px-3 py-2 text-xs font-semibold uppercase tracking-[0.08em] text-brand-gray transition hover:border-brand-gold hover:text-brand-gold"
-                              >
-                                {type}
-                              </button>
+                        <div className="space-y-2">
+                          <label className="text-sm font-semibold text-brand-dark-text">Property type</label>
+                          <select
+                            className="flex h-11 w-full rounded-2xl border border-brand-border bg-white px-4 py-2 text-sm text-brand-dark-text focus:outline-none focus:ring-2 focus:ring-brand-gold/40"
+                            {...propertyForm.register("property_type", { required: "Select a property type." })}
+                          >
+                            <option value="">Select property type</option>
+                            {propertyTypeOptions.map((option) => (
+                              <option key={option.value} value={option.value}>
+                                {option.label}
+                              </option>
                             ))}
-                          </div>
+                          </select>
+                        </div>
+                        <div className="rounded-2xl border border-brand-border bg-brand-cream/40 px-4 py-4">
+                          <p className="text-sm font-semibold text-brand-dark-text">Adaptive form</p>
+                          <p className="mt-2 text-sm leading-7 text-brand-gray">
+                            Warehouse and office space listings automatically skip bedroom and bathroom entry.
+                          </p>
                         </div>
                         <Textarea
-                          placeholder="Describe the property, lifestyle fit, standout features, and nearby context"
+                          placeholder="Describe the property, its use case, standout features, and nearby context"
                           className="min-h-40 md:col-span-2"
-                          {...propertyForm.register("description", { required: true, minLength: 20 })}
+                          {...propertyForm.register("description", {
+                            required: "Property description is required.",
+                            minLength: { value: 20, message: "Description should be at least 20 characters." },
+                          })}
                         />
                       </div>
                     ) : null}
@@ -819,42 +858,58 @@ export default function DashboardPage() {
                         <Input
                           placeholder="Street address"
                           className="md:col-span-2"
-                          {...propertyForm.register("address", { required: true })}
+                          {...propertyForm.register("address", { required: "Address is required." })}
                         />
                         <Input
                           placeholder="Neighbourhood"
-                          {...propertyForm.register("neighbourhood", { required: true })}
+                          {...propertyForm.register("neighbourhood", { required: "Neighbourhood is required." })}
                         />
-                        <Input placeholder="City" {...propertyForm.register("city", { required: true })} />
+                        <Input placeholder="City" {...propertyForm.register("city", { required: "City is required." })} />
                         <Input
                           placeholder="State / Region"
-                          {...propertyForm.register("state", { required: true })}
+                          {...propertyForm.register("state", { required: "State or region is required." })}
                         />
-                        <Input
-                          placeholder="Bedrooms"
-                          type="number"
-                          {...propertyForm.register("bedrooms", { required: true })}
-                        />
-                        <Input
-                          placeholder="Bathrooms"
-                          type="number"
-                          {...propertyForm.register("bathrooms", { required: true })}
-                        />
+                        {!isCommercialListing ? (
+                          <>
+                            <Input
+                              placeholder="Bedrooms"
+                              type="number"
+                              {...propertyForm.register("bedrooms", { required: "Bedrooms are required." })}
+                            />
+                            <Input
+                              placeholder="Bathrooms"
+                              type="number"
+                              {...propertyForm.register("bathrooms", { required: "Bathrooms are required." })}
+                            />
+                          </>
+                        ) : null}
                         <Input
                           placeholder="Toilets"
                           type="number"
-                          {...propertyForm.register("toilets", { required: true })}
+                          {...propertyForm.register("toilets", { required: "Toilets are required." })}
                         />
-                        <Input
-                          placeholder="Annual rent"
-                          type="number"
-                          {...propertyForm.register("annual_rent", { required: true })}
-                        />
+                        <div className="grid grid-cols-[1fr_110px] gap-3">
+                          <Input
+                            placeholder="Annual rent"
+                            type="number"
+                            {...propertyForm.register("annual_rent", { required: "Annual rent is required." })}
+                          />
+                          <select
+                            className="flex h-11 w-full rounded-2xl border border-brand-border bg-white px-4 py-2 text-sm text-brand-dark-text focus:outline-none focus:ring-2 focus:ring-brand-gold/40"
+                            {...propertyForm.register("currency", { required: true })}
+                          >
+                            {currencyOptions.map((currency) => (
+                              <option key={currency} value={currency}>
+                                {currency}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
                         <Input
                           placeholder="Security deposit"
                           type="number"
                           className="md:col-span-2"
-                          {...propertyForm.register("security_deposit")}
+                          {...propertyForm.register("security_deposit", { required: "Security deposit is required." })}
                         />
                       </div>
                     ) : null}
@@ -863,19 +918,37 @@ export default function DashboardPage() {
                       <div className="space-y-5">
                         <Input
                           placeholder="Amenities separated by commas"
-                          {...propertyForm.register("amenities", { required: true })}
+                          {...propertyForm.register("amenities", { required: "Amenities are required." })}
                         />
-                        <Input
-                          placeholder="Photo URLs separated by commas"
-                          {...propertyForm.register("photo_urls", { required: true })}
-                        />
-                        <Input
-                          placeholder="Document URLs separated by commas"
-                          {...propertyForm.register("document_urls", { required: true })}
-                        />
-                        <p className="text-sm leading-7 text-brand-gray">
-                          Add at least 3 photo URLs and at least 1 document URL so the backend verification rules pass cleanly.
-                        </p>
+                        <div className="grid gap-4 lg:grid-cols-2">
+                          <div className="space-y-3">
+                            <UploadZone
+                              label={uploadingPhotos ? "Uploading photos..." : "Property photos"}
+                              hint="Add multiple photos at once or one by one. At least 3 photos are required."
+                              accept={{ "image/*": [".png", ".jpg", ".jpeg", ".webp"] }}
+                              maxFiles={12}
+                              existingUrls={photoUrls}
+                              disabled={uploadingPhotos}
+                              onUploadComplete={(files) => handleFileUpload("photo_urls", files)}
+                            />
+                            <FilePills urls={photoUrls} onRemove={(url) => removeUploadedFile("photo_urls", url)} />
+                          </div>
+                          <div className="space-y-3">
+                            <UploadZone
+                              label={uploadingDocuments ? "Uploading documents..." : "Ownership documents"}
+                              hint="Upload documents side by side with photos. At least 1 document is required."
+                              accept={{
+                                "application/pdf": [".pdf"],
+                                "image/*": [".png", ".jpg", ".jpeg"],
+                              }}
+                              maxFiles={8}
+                              existingUrls={documentUrls}
+                              disabled={uploadingDocuments}
+                              onUploadComplete={(files) => handleFileUpload("document_urls", files)}
+                            />
+                            <FilePills urls={documentUrls} onRemove={(url) => removeUploadedFile("document_urls", url)} />
+                          </div>
+                        </div>
                         <div className="grid gap-3 md:grid-cols-2">
                           {[
                             ["is_furnished", "Furnished"],
@@ -900,6 +973,15 @@ export default function DashboardPage() {
                               />
                             </div>
                           ))}
+                        </div>
+                        <div className="rounded-2xl border border-brand-border bg-brand-cream/40 px-4 py-4 text-sm text-brand-gray">
+                          <div className="flex items-center gap-2 font-semibold text-brand-dark-text">
+                            <Upload className="h-4 w-4 text-brand-gold" />
+                            Submission guardrails
+                          </div>
+                          <p className="mt-2 leading-7">
+                            The engine will not submit until all visible fields are filled, at least 3 photos are uploaded, and at least 1 document is attached.
+                          </p>
                         </div>
                       </div>
                     ) : null}
@@ -1013,7 +1095,7 @@ export default function DashboardPage() {
                         </div>
                       </div>
                       <p className="text-sm leading-7 text-brand-gray">
-                        These toggles are saved for your current browser session profile so your dashboard can feel consistent every time you return.
+                        These toggles are saved for your current browser profile so your dashboard can feel consistent every time you return.
                       </p>
                       <div className="rounded-3xl bg-brand-black p-5 text-brand-white">
                         <p className="font-semibold">Recommended setup</p>

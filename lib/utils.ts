@@ -13,6 +13,14 @@ export function formatNaira(amount: number) {
   }).format(amount);
 }
 
+export function formatMoney(amount: number, currency = "NGN") {
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency,
+    maximumFractionDigits: 0,
+  }).format(amount);
+}
+
 export function initialsFromName(name: string) {
   return name
     .split(" ")

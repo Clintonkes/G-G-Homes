@@ -29,6 +29,7 @@ export interface Property {
   toilets: number;
   is_furnished: boolean;
   annual_rent: number;
+  currency: string;
   security_deposit?: number | null;
   amenities: string[];
   photo_urls: string[];

@@ -28,12 +28,14 @@ export function PropertyCard({ property, variant = "grid" }: { property: Propert
             {property.neighbourhood}, {property.city}
           </p>
         </div>
-        <div className="flex gap-6 text-sm text-brand-gray">
-          <span className="flex items-center gap-2"><BedDouble className="h-4 w-4" /> {property.bedrooms} Beds</span>
-          <span className="flex items-center gap-2"><Bath className="h-4 w-4" /> {property.bathrooms} Baths</span>
-        </div>
+        {property.bedrooms > 0 || property.bathrooms > 0 ? (
+          <div className="flex gap-6 text-sm text-brand-gray">
+            {property.bedrooms > 0 ? <span className="flex items-center gap-2"><BedDouble className="h-4 w-4" /> {property.bedrooms} Beds</span> : null}
+            {property.bathrooms > 0 ? <span className="flex items-center gap-2"><Bath className="h-4 w-4" /> {property.bathrooms} Baths</span> : null}
+          </div>
+        ) : null}
         <div className="flex items-center justify-between">
-          <PriceDisplay amount={property.annual_rent} />
+          <PriceDisplay amount={property.annual_rent} currency={property.currency} />
           <Link href={`/properties/${property.id}`}>
             <Button variant="dark">View Property</Button>
           </Link>
