@@ -8,13 +8,22 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Property } from "@/lib/types";
 import { PriceDisplay } from "@/components/properties/price-display";
 
-export function PropertyCard({ property, variant = "grid" }: { property: Property; showSaveButton?: boolean; variant?: "grid" | "list" }) {
+export function PropertyCard({
+  property,
+  variant = "grid",
+  hrefBase = "/properties",
+}: {
+  property: Property;
+  showSaveButton?: boolean;
+  variant?: "grid" | "list";
+  hrefBase?: string;
+}) {
   const image = property.thumbnail_url || property.photo_urls[0] || "https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=1200&q=80&auto=format&fit=crop";
 
   return (
     <Card className={variant === "list" ? "interactive-panel overflow-hidden md:grid md:grid-cols-[320px_1fr]" : "interactive-panel overflow-hidden"}>
       <div className="relative min-h-64">
-        <Image src={image} alt={property.title} fill className="object-cover" />
+        <Image src={image} alt={property.title} fill className="object-cover" unoptimized />
       </div>
       <CardContent className="space-y-4">
         <div className="flex items-center justify-between">
@@ -36,7 +45,7 @@ export function PropertyCard({ property, variant = "grid" }: { property: Propert
         ) : null}
         <div className="flex items-center justify-between">
           <PriceDisplay amount={property.annual_rent} currency={property.currency} />
-          <Link href={`/properties/${property.id}`}>
+          <Link href={`${hrefBase}/${property.id}`}>
             <Button variant="dark">View Property</Button>
           </Link>
         </div>

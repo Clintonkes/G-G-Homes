@@ -270,8 +270,10 @@ export default function DashboardPage() {
     queryFn: () =>
       fetchProperties(
         deferredSearch.trim()
-          ? `?q=${encodeURIComponent(deferredSearch.trim())}&page_size=8`
-          : "?page_size=8",
+          ? `?q=${encodeURIComponent(deferredSearch.trim())}&page_size=8&include_owned=true`
+          : "?page_size=8&include_owned=true",
+        undefined,
+        token,
       ),
     enabled: !!token,
   });
@@ -606,7 +608,7 @@ export default function DashboardPage() {
                               <button
                                 key={property.id}
                                 type="button"
-                                onClick={() => router.push(`/properties/${property.id}`)}
+                                onClick={() => router.push(`/dashboard/properties/${property.id}`)}
                                 className="flex w-full items-start justify-between rounded-2xl px-3 py-3 text-left transition hover:bg-brand-cream"
                               >
                                 <div>
@@ -668,7 +670,7 @@ export default function DashboardPage() {
                   {searchResults.data?.items.length ? (
                     <div className="grid gap-5">
                       {searchResults.data.items.map((property) => (
-                        <PropertyCard key={property.id} property={property} variant="list" />
+                        <PropertyCard key={property.id} property={property} variant="list" hrefBase="/dashboard/properties" />
                       ))}
                     </div>
                   ) : (
@@ -697,10 +699,10 @@ export default function DashboardPage() {
             />
             {myListings.data?.items.length ? (
               <div className="space-y-5">
-                <div className="grid gap-6 xl:grid-cols-2">
-                  {myListings.data.items.map((property) => (
-                    <div key={property.id} className="space-y-3">
-                      <PropertyCard property={property} />
+              <div className="grid gap-6 xl:grid-cols-2">
+                {myListings.data.items.map((property) => (
+                  <div key={property.id} className="space-y-3">
+                    <PropertyCard property={property} hrefBase="/dashboard/properties" />
                       <div className="rounded-3xl border border-brand-border bg-white/95 p-4">
                         <div className="flex flex-wrap items-center gap-3">
                           <StatusBadge value={property.status} />
