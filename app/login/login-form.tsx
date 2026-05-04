@@ -24,7 +24,7 @@ export function LoginForm() {
     register,
     handleSubmit,
     watch,
-    formState: { errors },
+    formState: { errors, isSubmitting },
   } = useForm<{ email: string; password: string }>({ mode: "onChange" });
   const password = watch("password", "");
 
@@ -83,7 +83,7 @@ export function LoginForm() {
               </Link>
             </div>
             {error ? <p className="text-sm text-brand-red">{error}</p> : null}
-            <Button className="w-full" type="submit">
+            <Button className="w-full" type="submit" isLoading={isSubmitting} loadingText="Signing in...">
               Sign In
             </Button>
             <Link href="/register" className="block text-center text-sm font-medium text-brand-dark-text">

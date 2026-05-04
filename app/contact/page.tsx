@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 
 export default function ContactPage() {
-  const { register, handleSubmit, reset } = useForm();
+  const { register, handleSubmit, reset, formState: { isSubmitting } } = useForm();
 
   return (
     <main className="mx-auto max-w-7xl px-4 pb-20 pt-28 md:px-6">
@@ -33,7 +33,8 @@ export default function ContactPage() {
           <CardContent>
             <form
               className="space-y-4"
-              onSubmit={handleSubmit(() => {
+              onSubmit={handleSubmit(async () => {
+                await new Promise((resolve) => window.setTimeout(resolve, 400));
                 reset();
               })}
             >
@@ -42,7 +43,9 @@ export default function ContactPage() {
               <Input placeholder="Phone" {...register("phone")} />
               <Input placeholder="Subject" {...register("subject")} />
               <Textarea placeholder="Message" {...register("message")} />
-              <Button type="submit">Send Message</Button>
+              <Button type="submit" isLoading={isSubmitting} loadingText="Submitting...">
+                Send Message
+              </Button>
             </form>
           </CardContent>
         </Card>

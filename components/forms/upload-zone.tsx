@@ -32,7 +32,7 @@ export function UploadZone({
     <div
       {...getRootProps()}
       className={cn(
-        "rounded-3xl border border-dashed border-brand-gold/50 bg-brand-cream px-6 py-8 text-center transition",
+        "cursor-pointer rounded-3xl border border-dashed border-brand-gold/50 bg-brand-cream px-6 py-8 text-center transition hover:border-brand-gold hover:bg-brand-gold/10",
         isDragActive && "bg-brand-gold/10",
         disabled && "cursor-not-allowed opacity-60",
       )}

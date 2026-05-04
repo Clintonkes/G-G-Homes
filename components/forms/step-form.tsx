@@ -1,4 +1,5 @@
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 
 export function StepForm({
   steps,
@@ -8,15 +9,17 @@ export function StepForm({
   nextLabel,
   isLastStep = false,
   disableNext = false,
+  isSubmitting = false,
   children,
 }: {
   steps: string[];
   currentStep: number;
-  onNext: () => void;
+  onNext: () => void | Promise<void>;
   onBack: () => void;
   nextLabel?: string;
   isLastStep?: boolean;
   disableNext?: boolean;
+  isSubmitting?: boolean;
   children: React.ReactNode;
 }) {
   return (
@@ -30,22 +33,23 @@ export function StepForm({
       </div>
       {children}
       <div className="flex justify-between">
-        <button
+        <Button
+          variant="outline"
           type="button"
           onClick={onBack}
-          disabled={currentStep === 0}
-          className="rounded-full border border-brand-border px-5 py-3 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-50"
+          disabled={currentStep === 0 || isSubmitting}
         >
           Back
-        </button>
-        <button
+        </Button>
+        <Button
           type={isLastStep ? "submit" : "button"}
           onClick={isLastStep ? undefined : onNext}
           disabled={disableNext}
-          className="rounded-full bg-brand-gold px-5 py-3 text-sm font-semibold text-brand-black disabled:cursor-not-allowed disabled:opacity-50"
+          isLoading={isSubmitting}
+          loadingText={isLastStep ? "Submitting..." : "Loading..."}
         >
           {nextLabel ?? (isLastStep ? "Submit" : "Next")}
-        </button>
+        </Button>
       </div>
     </div>
   );

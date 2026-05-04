@@ -13,7 +13,7 @@ import { Textarea } from "@/components/ui/textarea";
 export function InspectionBookingModal({ propertyId, propertyTitle }: { propertyId: string; propertyTitle: string }) {
   const token = useAuthStore((state) => state.token);
   const [message, setMessage] = useState<string | null>(null);
-  const { register, handleSubmit } = useForm<{ scheduledDate: string; tenantNotes: string }>();
+  const { register, handleSubmit, formState: { isSubmitting } } = useForm<{ scheduledDate: string; tenantNotes: string }>();
 
   const onSubmit = handleSubmit(async (values) => {
     if (!token) {
@@ -47,7 +47,9 @@ export function InspectionBookingModal({ propertyId, propertyTitle }: { property
             <Input type="datetime-local" {...register("scheduledDate", { required: true })} />
             <Textarea placeholder="Preferred time, access notes, or questions" {...register("tenantNotes")} />
             {message ? <p className="text-sm text-brand-gray">{message}</p> : null}
-            <Button type="submit" className="w-full">Confirm Request</Button>
+            <Button type="submit" className="w-full" isLoading={isSubmitting} loadingText="Submitting...">
+              Confirm Request
+            </Button>
           </form>
         </div>
       </DialogContent>

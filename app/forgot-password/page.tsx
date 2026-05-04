@@ -12,7 +12,7 @@ import { Input } from "@/components/ui/input";
 export default function ForgotPasswordPage() {
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const { register, handleSubmit, reset } = useForm<{ email: string }>();
+  const { register, handleSubmit, reset, formState: { isSubmitting } } = useForm<{ email: string }>();
 
   return (
     <AuthShell
@@ -44,7 +44,9 @@ export default function ForgotPasswordPage() {
             <Input placeholder="Email" type="email" {...register("email", { required: true })} />
             {message ? <p className="text-sm text-brand-gray">{message}</p> : null}
             {error ? <p className="text-sm text-brand-red">{error}</p> : null}
-            <Button type="submit" className="w-full">Send reset link</Button>
+            <Button type="submit" className="w-full" isLoading={isSubmitting} loadingText="Submitting...">
+              Send reset link
+            </Button>
           </form>
         </CardContent>
       </Card>

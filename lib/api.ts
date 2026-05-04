@@ -68,8 +68,8 @@ async function request<T>(path: string, init: RequestInit = {}, token?: string |
   return response.json();
 }
 
-export async function fetchProperties(params = "", options?: RequestOptions) {
-  return request<{ items: Property[]; total: number; page: number; page_size: number }>(`/api/properties${params}`, {}, undefined, options);
+export async function fetchProperties(params = "", options?: RequestOptions, token?: string | null) {
+  return request<{ items: Property[]; total: number; page: number; page_size: number }>(`/api/properties${params}`, {}, token, options);
 }
 
 export async function fetchProperty(id: string, token?: string | null) {

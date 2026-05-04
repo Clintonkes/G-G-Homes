@@ -21,7 +21,7 @@ export default function RegisterPage() {
     register,
     handleSubmit,
     watch,
-    formState: { errors },
+    formState: { errors, isSubmitting },
   } = useForm<{ full_name: string; email: string; phone_number: string; password: string }>({ mode: "onChange" });
   const password = watch("password", "");
 
@@ -68,7 +68,9 @@ export default function RegisterPage() {
             <p className="rounded-2xl bg-brand-cream px-4 py-3 text-sm leading-7 text-brand-gray">
               After signup, you will be redirected to login and then taken into your full dashboard workspace.
             </p>
-            <Button className="w-full">Create Account</Button>
+            <Button className="w-full" isLoading={isSubmitting} loadingText="Submitting...">
+              Create Account
+            </Button>
             <Link href="/login" className="block text-center text-sm font-medium text-brand-dark-text">
               Already registered? <span className="text-brand-gold">Sign in</span>
             </Link>

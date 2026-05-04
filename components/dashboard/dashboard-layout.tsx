@@ -25,10 +25,12 @@ const items = [
 export function DashboardLayout ({
   active,
   onSelect,
+  notificationCount = 0,
   children,
 }: {
   active: string;
   onSelect: (key: string) => void;
+  notificationCount?: number;
   children: React.ReactNode;
 }) {
   const user = useAuthStore((state) => state.user);
@@ -42,8 +44,8 @@ export function DashboardLayout ({
   };
 
   return (
-    <div className="mx-auto grid max-w-7xl gap-6 px-4 pb-16 pt-6 md:h-[calc(100vh-2rem)] md:grid-cols-[280px_minmax(0,1fr)] md:px-6 md:pb-6 md:pt-8">
-      <aside className="rounded-[2rem] bg-brand-black p-6 text-brand-white md:flex md:h-full md:flex-col md:overflow-hidden">
+    <div className="mx-auto grid w-full max-w-7xl gap-5 px-3 pb-16 pt-4 sm:px-4 md:px-6 lg:h-[calc(100vh-2rem)] lg:grid-cols-[280px_minmax(0,1fr)] lg:pb-6 lg:pt-8">
+      <aside className="min-w-0 rounded-[1.5rem] bg-brand-black p-4 text-brand-white sm:rounded-[2rem] sm:p-5 lg:flex lg:h-full lg:flex-col lg:overflow-hidden lg:p-6">
         <div className="shrink-0">
           <BrandLockup
             className="items-start"
@@ -52,38 +54,44 @@ export function DashboardLayout ({
             subtitle="Unified real estate workspace"
             subtitleClassName="text-sm text-brand-gray"
           />
-          <div className="mt-8 flex items-center gap-4 rounded-3xl bg-brand-white/5 p-4">
+          <div className="mt-5 hidden items-center gap-4 rounded-3xl bg-brand-white/5 p-4 sm:flex lg:mt-8">
             <div className="flex h-12 w-12 items-center justify-center rounded-full bg-brand-gold text-brand-black">{initialsFromName(user?.full_name ?? "GG")}</div>
-            <div>
-              <p className="font-semibold">{user?.full_name ?? "Guest User"}</p>
+            <div className="min-w-0">
+              <p className="truncate font-semibold">{user?.full_name ?? "Guest User"}</p>
               <p className="text-sm text-brand-gray">{user ? "Unified renter / landlord access" : "Guest access"}</p>
             </div>
           </div>
         </div>
-        <nav className="mt-8 space-y-2 md:flex-1 md:overflow-y-auto md:overscroll-contain md:pr-1 scrollbar-hidden">
+        <nav className="scrollbar-hidden mt-5 flex gap-2 overflow-x-auto pb-1 lg:mt-8 lg:block lg:flex-1 lg:space-y-2 lg:overflow-y-auto lg:overscroll-contain lg:pr-1">
           {items.map((item) => {
             const Icon = item.icon;
+            const showCount = item.key === "notifications" && notificationCount > 0;
             return (
               <button
                 key={item.key}
                 onClick={() => onSelect(item.key)}
-                className={cn("flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-left text-sm font-medium transition", active === item.key ? "bg-brand-gold text-brand-black" : "text-brand-white/80 hover:bg-brand-white/10")}
+                className={cn("relative flex shrink-0 items-center gap-3 rounded-2xl px-4 py-3 text-left text-sm font-medium transition lg:w-full", active === item.key ? "bg-brand-gold text-brand-black" : "text-brand-white/80 hover:bg-brand-white/10")}
               >
                 <Icon className="h-4 w-4" />
                 {item.label}
+                {showCount ? (
+                  <span className={cn("ml-auto rounded-full px-2 py-0.5 text-xs font-bold", active === item.key ? "bg-brand-black text-brand-white" : "bg-brand-gold text-brand-black")}>
+                    {notificationCount}
+                  </span>
+                ) : null}
               </button>
             );
           })}
           <button
             onClick={() => setLogoutOpen(true)}
-            className="flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-left text-sm font-medium text-brand-white/80 transition hover:bg-brand-white/10"
+            className="flex shrink-0 items-center gap-3 rounded-2xl px-4 py-3 text-left text-sm font-medium text-brand-white/80 transition hover:bg-brand-white/10 lg:w-full"
           >
             <LogOut className="h-4 w-4" />
             Logout
           </button>
         </nav>
       </aside>
-      <main className="min-w-0 md:h-full md:overflow-y-auto md:overscroll-contain md:pr-1 scrollbar-hidden">{children}</main>
+      <main className="scrollbar-hidden min-w-0 overflow-x-hidden lg:h-full lg:overflow-y-auto lg:overscroll-contain lg:pr-1">{children}</main>
       <Dialog open={logoutOpen} onOpenChange={setLogoutOpen}>
         <DialogContent className="max-w-md">
           <div className="space-y-4">

@@ -1,8 +1,11 @@
+import { useState } from 'react';
+
 import { useReveal } from '../hooks/useReveal';
 import { BRAND, WA_LINK } from '../constants';
 
 export default function Contact() {
   const { ref, visible } = useReveal();
+  const [submitting, setSubmitting] = useState(false);
 
   return (
     <section className="contact" id="contact" aria-labelledby="contact-heading" ref={ref}>
@@ -67,7 +70,15 @@ export default function Contact() {
         {/* Right: Form */}
         <form
           className={`contact-form reveal reveal-delay-2${visible ? ' visible' : ''}`}
-          onSubmit={(e) => e.preventDefault()}
+          onSubmit={(e) => {
+            e.preventDefault();
+            const form = e.currentTarget;
+            setSubmitting(true);
+            window.setTimeout(() => {
+              form.reset();
+              setSubmitting(false);
+            }, 500);
+          }}
         >
           <div className="form-field">
             <label htmlFor="name">Name</label>
@@ -89,8 +100,8 @@ export default function Contact() {
             <textarea id="message" placeholder="How can we help you?" required></textarea>
           </div>
 
-          <button type="submit" className="btn btn-gold" style={{ marginTop: '1rem' }}>
-            Submit Message
+          <button type="submit" className="btn btn-gold" style={{ marginTop: '1rem' }} disabled={submitting}>
+            {submitting ? 'Submitting...' : 'Submit Message'}
           </button>
         </form>
       </div>

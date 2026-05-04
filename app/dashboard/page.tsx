@@ -36,6 +36,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Pagination } from "@/components/ui/pagination";
 import { Switch } from "@/components/ui/switch";
 import { Table } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -68,6 +69,7 @@ type PropertyFormValues = {
   security_deposit: string;
   amenities: string;
   photo_urls: string[];
+  video_urls: string[];
   document_urls: string[];
   is_furnished: boolean;
   has_water: boolean;
@@ -102,10 +104,36 @@ const currencyOptions = ["NGN", "USD", "GBP", "EUR", "KES", "GHS", "ZAR"];
 const commercialPropertyTypes = new Set(["OFFICE_SPACE", "WAREHOUSE"]);
 
 const listingSteps = ["Property Basics", "Location & Pricing", "Media & Amenities"];
+const pageSize = 10;
 const defaultPreferences: PreferencesState = {
   productUpdates: true,
   instantAlerts: true,
   listingDigest: false,
+};
+
+const defaultPropertyValues: PropertyFormValues = {
+  title: "",
+  description: "",
+  address: "",
+  neighbourhood: "",
+  city: "",
+  state: "",
+  property_type: "",
+  bedrooms: "",
+  bathrooms: "",
+  toilets: "",
+  annual_rent: "",
+  currency: "NGN",
+  security_deposit: "",
+  amenities: "",
+  photo_urls: [],
+  video_urls: [],
+  document_urls: [],
+  is_furnished: false,
+  has_water: true,
+  has_electricity: true,
+  has_security: false,
+  has_parking: false,
 };
 
 function splitCsv(value: string) {
@@ -196,6 +224,17 @@ export default function DashboardPage() {
   const [preferences, setPreferences] = useState<PreferencesState>(defaultPreferences);
   const [uploadingPhotos, setUploadingPhotos] = useState(false);
   const [uploadingDocuments, setUploadingDocuments] = useState(false);
+  const [listingPage, setListingPage] = useState(1);
+  const [appointmentsPage, setAppointmentsPage] = useState(1);
+  const [paymentsPage, setPaymentsPage] = useState(1);
+  const [notificationsPage, setNotificationsPage] = useState(1);
+  const [localListingNotice, setLocalListingNotice] = useState<{
+    id: string;
+    title: string;
+    message: string;
+    created_at: string;
+    is_read: boolean;
+  } | null>(null);
 
   const deferredSearch = useDeferredValue(searchTerm);
   const token = useAuthStore((state) => state.token);
@@ -221,8 +260,8 @@ export default function DashboardPage() {
   });
 
   const myListings = useQuery({
-    queryKey: ["my-properties", token],
-    queryFn: () => fetchProperties("?include_mine=true"),
+    queryKey: ["my-properties", token, listingPage],
+    queryFn: () => fetchProperties(`?include_mine=true&page=${listingPage}&page_size=${pageSize}`, undefined, token),
     enabled: !!token,
   });
 
@@ -243,29 +282,7 @@ export default function DashboardPage() {
   );
 
   const propertyForm = useForm<PropertyFormValues>({
-    defaultValues: {
-      title: "",
-      description: "",
-      address: "",
-      neighbourhood: "",
-      city: "",
-      state: "",
-      property_type: "",
-      bedrooms: "",
-      bathrooms: "",
-      toilets: "",
-      annual_rent: "",
-      currency: "NGN",
-      security_deposit: "",
-      amenities: "",
-      photo_urls: [],
-      document_urls: [],
-      is_furnished: false,
-      has_water: true,
-      has_electricity: true,
-      has_security: false,
-      has_parking: false,
-    },
+    defaultValues: defaultPropertyValues,
   });
 
   const settingsForm = useForm<SettingsFormValues>({
@@ -280,8 +297,19 @@ export default function DashboardPage() {
   const propertyType = propertyForm.watch("property_type");
   const isCommercialListing = commercialPropertyTypes.has(propertyType);
   const photoUrls = propertyForm.watch("photo_urls");
+  const videoUrls = propertyForm.watch("video_urls");
   const documentUrls = propertyForm.watch("document_urls");
   const showSuggestions = Boolean(searchTerm.trim()) && Boolean(searchResults.data?.items.length);
+  const isSubmittingProperty = propertyForm.formState.isSubmitting;
+  const isSavingSettings = settingsForm.formState.isSubmitting;
+  const pagedAppointments = appointments.data?.slice((appointmentsPage - 1) * pageSize, appointmentsPage * pageSize) ?? [];
+  const pagedPayments = payments.data?.slice((paymentsPage - 1) * pageSize, paymentsPage * pageSize) ?? [];
+  const notificationItems = useMemo(() => {
+    const remote = notifications.data ?? [];
+    return localListingNotice ? [localListingNotice, ...remote] : remote;
+  }, [localListingNotice, notifications.data]);
+  const pagedNotifications = notificationItems.slice((notificationsPage - 1) * pageSize, notificationsPage * pageSize);
+  const notificationCount = notificationItems.filter((item) => !item.is_read).length;
 
   useEffect(() => {
     if (!user) return;
@@ -332,9 +360,27 @@ export default function DashboardPage() {
       setListingError(null);
       setUploading(true);
       const uploaded = await Promise.all(files.map((file) => uploadAsset(token, file)));
-      const nextUrls = [...propertyForm.getValues(field), ...uploaded.map((item) => item.url)];
-      propertyForm.setValue(field, nextUrls, { shouldValidate: true, shouldDirty: true });
-      await propertyForm.trigger(field);
+      if (field === "photo_urls") {
+        const nextPhotoUrls = [
+          ...propertyForm.getValues("photo_urls"),
+          ...uploaded
+            .filter((_, index) => files[index]?.type.startsWith("image/"))
+            .map((item) => item.url),
+        ];
+        const nextVideoUrls = [
+          ...propertyForm.getValues("video_urls"),
+          ...uploaded
+            .filter((_, index) => files[index]?.type.startsWith("video/"))
+            .map((item) => item.url),
+        ];
+        propertyForm.setValue("photo_urls", nextPhotoUrls, { shouldValidate: true, shouldDirty: true });
+        propertyForm.setValue("video_urls", nextVideoUrls, { shouldValidate: true, shouldDirty: true });
+        await propertyForm.trigger("photo_urls");
+      } else {
+        const nextUrls = [...propertyForm.getValues(field), ...uploaded.map((item) => item.url)];
+        propertyForm.setValue(field, nextUrls, { shouldValidate: true, shouldDirty: true });
+        await propertyForm.trigger(field);
+      }
     } catch (error) {
       setListingError(error instanceof Error ? error.message : "Upload failed.");
     } finally {
@@ -342,7 +388,7 @@ export default function DashboardPage() {
     }
   };
 
-  const removeUploadedFile = (field: "photo_urls" | "document_urls", url: string) => {
+  const removeUploadedFile = (field: "photo_urls" | "video_urls" | "document_urls", url: string) => {
     const nextUrls = propertyForm.getValues(field).filter((item) => item !== url);
     propertyForm.setValue(field, nextUrls, { shouldValidate: true, shouldDirty: true });
     propertyForm.trigger(field);
@@ -388,7 +434,7 @@ export default function DashboardPage() {
     try {
       setListingError(null);
       setListingMessage(null);
-      await createProperty(token, {
+      const createdProperty = await createProperty(token, {
         title: values.title,
         description: values.description,
         address: values.address,
@@ -404,7 +450,7 @@ export default function DashboardPage() {
         security_deposit: Number(values.security_deposit),
         amenities: splitCsv(values.amenities),
         photo_urls: values.photo_urls,
-        video_urls: [],
+        video_urls: values.video_urls,
         document_urls: values.document_urls,
         is_furnished: values.is_furnished,
         has_water: values.has_water,
@@ -412,10 +458,19 @@ export default function DashboardPage() {
         has_security: values.has_security,
         has_parking: values.has_parking,
       });
-      propertyForm.reset();
+      propertyForm.reset(defaultPropertyValues);
       setPropertyStep(0);
+      setListingPage(1);
       await myListings.refetch();
+      await notifications.refetch();
       setListingMessage("Property submitted successfully. It is now queued for verification.");
+      setLocalListingNotice({
+        id: `local-listing-${createdProperty.id}`,
+        title: "Listing submitted",
+        message: `${createdProperty.title} has been registered with pending verification status.`,
+        created_at: new Date().toISOString(),
+        is_read: false,
+      });
       setActive("saved");
     } catch (error) {
       setListingError(error instanceof Error ? error.message : "Unable to submit the property right now.");
@@ -449,8 +504,22 @@ export default function DashboardPage() {
   }
 
   return (
-    <DashboardLayout active={active} onSelect={(key) => setActive(key as DashboardSection)}>
+    <DashboardLayout
+      active={active}
+      notificationCount={notificationCount}
+      onSelect={(key) => {
+        if (key === "notifications") {
+          setLocalListingNotice((current) => (current ? { ...current, is_read: true } : current));
+        }
+        setActive(key as DashboardSection);
+      }}
+    >
       <div className="space-y-6">
+        {listingMessage && active !== "list-property" ? (
+          <div className="rounded-2xl border border-brand-green/20 bg-white/95 px-4 py-3 text-sm font-medium text-brand-green shadow-sm">
+            {listingMessage}
+          </div>
+        ) : null}
         {active === "overview" ? (
           <>
             {expiringPayment ? (
@@ -474,7 +543,7 @@ export default function DashboardPage() {
               {[
                 {
                   label: "My Listings",
-                  value: myListings.data?.items.length ?? 0,
+                  value: myListings.data?.total ?? 0,
                   hint: "Properties currently in your account",
                 },
                 {
@@ -489,7 +558,7 @@ export default function DashboardPage() {
                 },
                 {
                   label: "Notifications",
-                  value: notifications.data?.length ?? 0,
+                  value: notificationCount,
                   hint: "Updates that still need attention",
                 },
               ].map((item) => (
@@ -627,27 +696,35 @@ export default function DashboardPage() {
               }
             />
             {myListings.data?.items.length ? (
-              <div className="grid gap-6 xl:grid-cols-2">
-                {myListings.data.items.map((property) => (
-                  <div key={property.id} className="space-y-3">
-                    <PropertyCard property={property} />
-                    <div className="rounded-3xl border border-brand-border bg-white/95 p-4">
-                      <div className="flex flex-wrap items-center gap-3">
-                        <StatusBadge value={property.status} />
-                        {property.is_verified ? (
-                          <Badge className="border-brand-green/30 text-brand-green">Verified</Badge>
-                        ) : (
-                          <Badge>Awaiting verification</Badge>
-                        )}
-                        <Badge>{property.city}</Badge>
-                        <Badge>{formatMoney(property.annual_rent, property.currency)}</Badge>
+              <div className="space-y-5">
+                <div className="grid gap-6 xl:grid-cols-2">
+                  {myListings.data.items.map((property) => (
+                    <div key={property.id} className="space-y-3">
+                      <PropertyCard property={property} />
+                      <div className="rounded-3xl border border-brand-border bg-white/95 p-4">
+                        <div className="flex flex-wrap items-center gap-3">
+                          <StatusBadge value={property.status} />
+                          {property.is_verified ? (
+                            <Badge className="border-brand-green/30 text-brand-green">Verified</Badge>
+                          ) : (
+                            <Badge>Awaiting verification</Badge>
+                          )}
+                          <Badge>{property.city}</Badge>
+                          <Badge>{formatMoney(property.annual_rent, property.currency)}</Badge>
+                        </div>
+                        <p className="mt-3 text-sm leading-7 text-brand-gray">
+                          Created on {new Date(property.created_at).toLocaleDateString()} and visible in your landlord workspace.
+                        </p>
                       </div>
-                      <p className="mt-3 text-sm leading-7 text-brand-gray">
-                        Created on {new Date(property.created_at).toLocaleDateString()} and visible in your landlord workspace.
-                      </p>
                     </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
+                <Pagination
+                  page={myListings.data.page ?? listingPage}
+                  pageSize={myListings.data.page_size ?? pageSize}
+                  total={myListings.data.total ?? 0}
+                  onPageChange={setListingPage}
+                />
               </div>
             ) : (
               <EmptyState
@@ -673,28 +750,36 @@ export default function DashboardPage() {
             <Card className="bg-white/95">
               <CardContent>
                 {appointments.data?.length ? (
-                  <Table>
-                    <thead>
-                      <tr className="border-b border-brand-border text-sm text-brand-gray">
-                        <th className="pb-3">Date</th>
-                        <th className="pb-3">Status</th>
-                        <th className="pb-3">Outcome</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {appointments.data.map((item) => (
-                        <tr key={item.id} className="border-b border-brand-border/70">
-                          <td className="py-4">{new Date(item.scheduled_date).toLocaleString()}</td>
-                          <td className="py-4">
-                            <StatusBadge value={item.status} />
-                          </td>
-                          <td className="py-4 text-sm capitalize text-brand-gray">
-                            {item.outcome.replaceAll("_", " ")}
-                          </td>
+                  <div className="space-y-4">
+                    <Table>
+                      <thead>
+                        <tr className="border-b border-brand-border text-sm text-brand-gray">
+                          <th className="pb-3">Date</th>
+                          <th className="pb-3">Status</th>
+                          <th className="pb-3">Outcome</th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </Table>
+                      </thead>
+                      <tbody>
+                        {pagedAppointments.map((item) => (
+                          <tr key={item.id} className="border-b border-brand-border/70">
+                            <td className="py-4">{new Date(item.scheduled_date).toLocaleString()}</td>
+                            <td className="py-4">
+                              <StatusBadge value={item.status} />
+                            </td>
+                            <td className="py-4 text-sm capitalize text-brand-gray">
+                              {item.outcome.replaceAll("_", " ")}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </Table>
+                    <Pagination
+                      page={appointmentsPage}
+                      pageSize={pageSize}
+                      total={appointments.data.length}
+                      onPageChange={setAppointmentsPage}
+                    />
+                  </div>
                 ) : (
                   <EmptyState
                     title="No appointments yet"
@@ -716,26 +801,34 @@ export default function DashboardPage() {
             <Card className="bg-white/95">
               <CardContent>
                 {payments.data?.length ? (
-                  <Table>
-                    <thead>
-                      <tr className="border-b border-brand-border text-sm text-brand-gray">
-                        <th className="pb-3">Reference</th>
-                        <th className="pb-3">Amount</th>
-                        <th className="pb-3">Status</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {payments.data.map((item) => (
-                        <tr key={item.id} className="border-b border-brand-border/70">
-                          <td className="py-4">{item.flutterwave_reference}</td>
-                          <td className="py-4">₦{item.gross_amount.toLocaleString("en-NG")}</td>
-                          <td className="py-4">
-                            <StatusBadge value={item.status} />
-                          </td>
+                  <div className="space-y-4">
+                    <Table>
+                      <thead>
+                        <tr className="border-b border-brand-border text-sm text-brand-gray">
+                          <th className="pb-3">Reference</th>
+                          <th className="pb-3">Amount</th>
+                          <th className="pb-3">Status</th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </Table>
+                      </thead>
+                      <tbody>
+                        {pagedPayments.map((item) => (
+                          <tr key={item.id} className="border-b border-brand-border/70">
+                            <td className="py-4">{item.flutterwave_reference}</td>
+                            <td className="py-4">₦{item.gross_amount.toLocaleString("en-NG")}</td>
+                            <td className="py-4">
+                              <StatusBadge value={item.status} />
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </Table>
+                    <Pagination
+                      page={paymentsPage}
+                      pageSize={pageSize}
+                      total={payments.data.length}
+                      onPageChange={setPaymentsPage}
+                    />
+                  </div>
                 ) : (
                   <EmptyState
                     title="No payments recorded yet"
@@ -754,29 +847,37 @@ export default function DashboardPage() {
               title="Stay on top of platform activity"
               description="Messages, reminders, and listing updates are gathered here so you can act quickly."
             />
-            {notifications.data?.length ? (
-              <div className="grid gap-4">
-                {notifications.data.map((item) => (
-                  <Card key={item.id} className="bg-white/95">
-                    <CardContent className="space-y-3">
-                      <div className="flex items-center justify-between gap-3">
-                        <div className="flex items-center gap-3">
-                          <div className="rounded-2xl bg-brand-gold/10 p-3 text-brand-gold">
-                            <Bell className="h-4 w-4" />
+            {notificationItems.length ? (
+              <div className="space-y-4">
+                <div className="grid gap-4">
+                  {pagedNotifications.map((item) => (
+                    <Card key={item.id} className="bg-white/95">
+                      <CardContent className="space-y-3">
+                        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                          <div className="flex items-center gap-3">
+                            <div className="rounded-2xl bg-brand-gold/10 p-3 text-brand-gold">
+                              <Bell className="h-4 w-4" />
+                            </div>
+                            <div>
+                              <p className="font-semibold text-brand-dark-text">{item.title}</p>
+                              <p className="text-xs uppercase tracking-[0.14em] text-brand-gray">
+                                {new Date(item.created_at).toLocaleString()}
+                              </p>
+                            </div>
                           </div>
-                          <div>
-                            <p className="font-semibold text-brand-dark-text">{item.title}</p>
-                            <p className="text-xs uppercase tracking-[0.14em] text-brand-gray">
-                              {new Date(item.created_at).toLocaleString()}
-                            </p>
-                          </div>
+                          {item.is_read ? <Badge>Read</Badge> : <Badge className="text-brand-red">Unread</Badge>}
                         </div>
-                        {item.is_read ? <Badge>Read</Badge> : <Badge className="text-brand-red">Unread</Badge>}
-                      </div>
-                      <p className="text-sm leading-7 text-brand-gray">{item.message}</p>
-                    </CardContent>
-                  </Card>
-                ))}
+                        <p className="text-sm leading-7 text-brand-gray">{item.message}</p>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+                <Pagination
+                  page={notificationsPage}
+                  pageSize={pageSize}
+                  total={notificationItems.length}
+                  onPageChange={setNotificationsPage}
+                />
               </div>
             ) : (
               <EmptyState
@@ -792,7 +893,7 @@ export default function DashboardPage() {
             <SectionHeader
               eyebrow="List Property"
               title="Create a listing in three clean steps"
-              description="The form adapts to the type of property, supports flexible currencies, and now uses proper side-by-side multi-upload boxes for photos and documents."
+              description="Add the property details, pricing, media, and ownership documents in a focused flow that works cleanly across every screen size."
             />
             <Card className="bg-white/95">
               <CardContent className="space-y-6">
@@ -814,6 +915,8 @@ export default function DashboardPage() {
                     onBack={() => setPropertyStep((current) => Math.max(current - 1, 0))}
                     isLastStep={propertyStep === listingSteps.length - 1}
                     nextLabel={propertyStep === listingSteps.length - 1 ? "Submit Listing" : "Continue"}
+                    disableNext={uploadingPhotos || uploadingDocuments || isSubmittingProperty}
+                    isSubmitting={isSubmittingProperty}
                   >
                     {propertyStep === 0 ? (
                       <div className="grid gap-4 md:grid-cols-2">
@@ -835,12 +938,6 @@ export default function DashboardPage() {
                               </option>
                             ))}
                           </select>
-                        </div>
-                        <div className="rounded-2xl border border-brand-border bg-brand-cream/40 px-4 py-4">
-                          <p className="text-sm font-semibold text-brand-dark-text">Adaptive form</p>
-                          <p className="mt-2 text-sm leading-7 text-brand-gray">
-                            Warehouse and office space listings automatically skip bedroom and bathroom entry.
-                          </p>
                         </div>
                         <Textarea
                           placeholder="Describe the property, its use case, standout features, and nearby context"
@@ -924,22 +1021,31 @@ export default function DashboardPage() {
                           <div className="space-y-3">
                             <UploadZone
                               label={uploadingPhotos ? "Uploading photos..." : "Property photos"}
-                              hint="Add multiple photos at once or one by one. At least 3 photos are required."
-                              accept={{ "image/*": [".png", ".jpg", ".jpeg", ".webp"] }}
+                              hint="Add photos or videos here only. At least 3 photos are required."
+                              accept={{
+                                "image/*": [".png", ".jpg", ".jpeg", ".webp"],
+                                "video/*": [".mp4", ".mov", ".webm"],
+                              }}
                               maxFiles={12}
-                              existingUrls={photoUrls}
+                              existingUrls={[...photoUrls, ...videoUrls]}
                               disabled={uploadingPhotos}
                               onUploadComplete={(files) => handleFileUpload("photo_urls", files)}
                             />
-                            <FilePills urls={photoUrls} onRemove={(url) => removeUploadedFile("photo_urls", url)} />
+                            <FilePills
+                              urls={[...photoUrls, ...videoUrls]}
+                              onRemove={(url) =>
+                                removeUploadedFile(photoUrls.includes(url) ? "photo_urls" : "video_urls", url)
+                              }
+                            />
                           </div>
                           <div className="space-y-3">
                             <UploadZone
                               label={uploadingDocuments ? "Uploading documents..." : "Ownership documents"}
-                              hint="Upload documents side by side with photos. At least 1 document is required."
+                              hint="Upload ownership documents here only. At least 1 document is required."
                               accept={{
                                 "application/pdf": [".pdf"],
-                                "image/*": [".png", ".jpg", ".jpeg"],
+                                "application/msword": [".doc"],
+                                "application/vnd.openxmlformats-officedocument.wordprocessingml.document": [".docx"],
                               }}
                               maxFiles={8}
                               existingUrls={documentUrls}
@@ -1038,7 +1144,7 @@ export default function DashboardPage() {
                         {...settingsForm.register("id_document_url")}
                       />
                       <div className="md:col-span-2 flex justify-end">
-                        <Button type="submit">Save Changes</Button>
+                        <Button type="submit" isLoading={isSavingSettings} loadingText="Saving...">Save Changes</Button>
                       </div>
                     </form>
                   </CardContent>
