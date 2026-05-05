@@ -1,6 +1,7 @@
 "use client";
 
-import { MapPin, ShieldCheck } from "lucide-react";
+import Link from "next/link";
+import { ArrowLeft, LayoutDashboard, MapPin, Search, ShieldCheck } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 
 import { InspectionBookingModal } from "@/components/forms/inspection-booking-modal";
@@ -33,6 +34,26 @@ export default function DashboardPropertyDetailPage({ params }: { params: { id: 
 
   return (
     <main className="space-y-10 pb-6">
+      <div className="sticky top-0 z-20 -mx-1 flex flex-wrap items-center gap-2 border-b border-brand-gold/15 bg-brand-black/95 px-1 py-3 backdrop-blur">
+        <Link href="/dashboard">
+          <Button variant="outline" size="sm" className="gap-2">
+            <ArrowLeft className="h-4 w-4" />
+            Dashboard
+          </Button>
+        </Link>
+        <Link href="/dashboard">
+          <Button variant="ghost" size="sm" className="gap-2 text-brand-white hover:text-brand-dark-text">
+            <LayoutDashboard className="h-4 w-4" />
+            Workspace
+          </Button>
+        </Link>
+        <Link href="/properties">
+          <Button variant="ghost" size="sm" className="gap-2 text-brand-white hover:text-brand-dark-text">
+            <Search className="h-4 w-4" />
+            Public Search
+          </Button>
+        </Link>
+      </div>
       <PropertyGallery photoUrls={property.photo_urls} videoUrls={property.video_urls} title={property.title} />
       <div className="grid gap-10 lg:grid-cols-[1.5fr_0.8fr]">
         <div className="space-y-8">
@@ -77,7 +98,7 @@ export default function DashboardPropertyDetailPage({ params }: { params: { id: 
           </div>
         </div>
 
-        <div className="lg:sticky lg:top-0 lg:h-fit">
+        <div className="lg:sticky lg:top-20 lg:h-fit">
           <Card className="bg-white/95">
             <CardContent className="space-y-5">
               <PriceDisplay amount={property.annual_rent} currency={property.currency} size="lg" />

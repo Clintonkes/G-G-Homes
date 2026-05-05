@@ -10,6 +10,8 @@ export function StatusBadge({ value }: { value: string }) {
     PENDING: "border-brand-gold/40 text-brand-gold",
     CONFIRMED: "border-brand-green/30 text-brand-green",
     CANCELLED: "border-brand-red/30 text-brand-red",
+    INVALID: "border-brand-red/30 text-brand-red",
+    NO_SHOW: "border-brand-red/30 text-brand-red",
     COMPLETED: "border-brand-green/30 text-brand-green",
     SUCCESS: "border-brand-green/30 text-brand-green",
     FAILED: "border-brand-red/30 text-brand-red",

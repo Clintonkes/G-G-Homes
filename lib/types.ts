@@ -1,6 +1,6 @@
 export type UserRole = "TENANT" | "LANDLORD" | "ADMIN";
 export type PropertyStatus = "DRAFT" | "PENDING_VERIFICATION" | "ACTIVE" | "RENTED" | "INACTIVE";
-export type AppointmentStatus = "PENDING" | "CONFIRMED" | "COMPLETED" | "CANCELLED" | "NO_SHOW";
+export type AppointmentStatus = "PENDING" | "CONFIRMED" | "COMPLETED" | "CANCELLED" | "NO_SHOW" | "INVALID";
 export type PaymentStatus = "PENDING" | "SUCCESS" | "FAILED" | "REFUNDED";
 
 export interface User {
@@ -51,6 +51,9 @@ export interface Appointment {
   status: AppointmentStatus;
   outcome: string;
   tenant_notes?: string | null;
+  admin_notes?: string | null;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface Payment {

@@ -120,13 +120,27 @@ export async function fetchNotifications(token: string) {
   return request<NotificationItem[]>("/api/notifications", {}, token);
 }
 
+export async function markNotificationsRead(token: string, ids?: string[]) {
+  return request<NotificationItem[]>("/api/notifications", {
+    method: "PATCH",
+    body: JSON.stringify(ids?.length ? { ids } : { mark_all: true }),
+  }, token);
+}
+
 export async function fetchSaved(token: string) {
   return request<Array<{ id: string; property: Property }>>("/api/saved", {}, token);
 }
 
 export async function createAppointment(token: string, payload: Record<string, unknown>) {
-  return request("/api/appointments", {
+  return request<Appointment>("/api/appointments", {
     method: "POST",
+    body: JSON.stringify(payload),
+  }, token);
+}
+
+export async function updateAppointment(token: string, id: string, payload: Record<string, unknown>) {
+  return request<Appointment>(`/api/appointments/${id}`, {
+    method: "PATCH",
     body: JSON.stringify(payload),
   }, token);
 }

@@ -25,11 +25,13 @@ const items = [
 export function DashboardLayout ({
   active,
   onSelect,
+  appointmentCount = 0,
   notificationCount = 0,
   children,
 }: {
   active: string;
   onSelect: (key: string) => void;
+  appointmentCount?: number;
   notificationCount?: number;
   children: React.ReactNode;
 }) {
@@ -65,7 +67,7 @@ export function DashboardLayout ({
         <nav className="scrollbar-hidden mt-5 flex gap-2 overflow-x-auto pb-1 lg:mt-8 lg:block lg:flex-1 lg:space-y-2 lg:overflow-y-auto lg:overscroll-contain lg:pr-1">
           {items.map((item) => {
             const Icon = item.icon;
-            const showCount = item.key === "notifications" && notificationCount > 0;
+            const count = item.key === "notifications" ? notificationCount : item.key === "appointments" ? appointmentCount : 0;
             return (
               <button
                 key={item.key}
@@ -74,9 +76,9 @@ export function DashboardLayout ({
               >
                 <Icon className="h-4 w-4" />
                 {item.label}
-                {showCount ? (
+                {count > 0 ? (
                   <span className={cn("ml-auto rounded-full px-2 py-0.5 text-xs font-bold", active === item.key ? "bg-brand-black text-brand-white" : "bg-brand-gold text-brand-black")}>
-                    {notificationCount}
+                    {count}
                   </span>
                 ) : null}
               </button>

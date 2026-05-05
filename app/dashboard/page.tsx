@@ -17,11 +17,14 @@ import {
 import { useRouter } from "next/navigation";
 
 import {
+  createAppointment,
   createProperty,
   fetchAppointments,
   fetchNotifications,
   fetchPayments,
   fetchProperties,
+  markNotificationsRead,
+  updateAppointment,
   updateMe,
   uploadAsset,
 } from "@/lib/api";
@@ -143,6 +146,19 @@ function splitCsv(value: string) {
     .filter(Boolean);
 }
 
+function toDateTimeLocal(value: string) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  const offset = date.getTimezoneOffset() * 60000;
+  return new Date(date.getTime() - offset).toISOString().slice(0, 16);
+}
+
+function canEditAppointmentDate(value: string) {
+  const scheduled = new Date(value).getTime();
+  if (Number.isNaN(scheduled)) return false;
+  return scheduled - Date.now() > 48 * 60 * 60 * 1000;
+}
+
 function SectionHeader({
   eyebrow,
   title,
@@ -228,6 +244,12 @@ export default function DashboardPage() {
   const [appointmentsPage, setAppointmentsPage] = useState(1);
   const [paymentsPage, setPaymentsPage] = useState(1);
   const [notificationsPage, setNotificationsPage] = useState(1);
+  const [appointmentsViewedAt, setAppointmentsViewedAt] = useState(0);
+  const [notificationsViewedAt, setNotificationsViewedAt] = useState(0);
+  const [appointmentDates, setAppointmentDates] = useState<Record<string, string>>({});
+  const [appointmentMessage, setAppointmentMessage] = useState<string | null>(null);
+  const [appointmentError, setAppointmentError] = useState<string | null>(null);
+  const [savingAppointmentId, setSavingAppointmentId] = useState<string | null>(null);
   const [localListingNotice, setLocalListingNotice] = useState<{
     id: string;
     title: string;
@@ -306,12 +328,26 @@ export default function DashboardPage() {
   const isSavingSettings = settingsForm.formState.isSubmitting;
   const pagedAppointments = appointments.data?.slice((appointmentsPage - 1) * pageSize, appointmentsPage * pageSize) ?? [];
   const pagedPayments = payments.data?.slice((paymentsPage - 1) * pageSize, paymentsPage * pageSize) ?? [];
+  const listingById = useMemo(() => new Map((myListings.data?.items ?? []).map((property) => [property.id, property])), [myListings.data?.items]);
+  const pendingListings = useMemo(
+    () => (myListings.data?.items ?? []).filter((property) => property.status === "PENDING_VERIFICATION"),
+    [myListings.data?.items],
+  );
+  const latestAppointmentByProperty = useMemo(() => {
+    const map = new Map<string, NonNullable<typeof appointments.data>[number]>();
+    (appointments.data ?? []).forEach((appointment) => {
+      if (!map.has(appointment.property_id)) map.set(appointment.property_id, appointment);
+    });
+    return map;
+  }, [appointments.data]);
   const notificationItems = useMemo(() => {
     const remote = notifications.data ?? [];
     return localListingNotice ? [localListingNotice, ...remote] : remote;
   }, [localListingNotice, notifications.data]);
   const pagedNotifications = notificationItems.slice((notificationsPage - 1) * pageSize, notificationsPage * pageSize);
-  const notificationCount = notificationItems.filter((item) => !item.is_read).length;
+  const notificationCount = notificationItems.filter((item) => !item.is_read && new Date(item.created_at).getTime() > notificationsViewedAt).length;
+  const appointmentCount =
+    appointments.data?.filter((item) => item.status === "PENDING" && new Date(item.created_at).getTime() > appointmentsViewedAt).length ?? 0;
 
   useEffect(() => {
     if (!user) return;
@@ -341,11 +377,16 @@ export default function DashboardPage() {
   useEffect(() => {
     if (typeof window === "undefined") return;
     const saved = window.localStorage.getItem("gg-homes-dashboard-preferences");
-    if (!saved) return;
-    try {
-      setPreferences({ ...defaultPreferences, ...JSON.parse(saved) });
-    } catch {
-      window.localStorage.removeItem("gg-homes-dashboard-preferences");
+    const savedAppointmentsViewedAt = window.localStorage.getItem("gg-homes-appointments-viewed-at");
+    if (saved) {
+      try {
+        setPreferences({ ...defaultPreferences, ...JSON.parse(saved) });
+      } catch {
+        window.localStorage.removeItem("gg-homes-dashboard-preferences");
+      }
+    }
+    if (savedAppointmentsViewedAt) {
+      setAppointmentsViewedAt(Number(savedAppointmentsViewedAt) || 0);
     }
   }, []);
 
@@ -353,6 +394,19 @@ export default function DashboardPage() {
     if (typeof window === "undefined") return;
     window.localStorage.setItem("gg-homes-dashboard-preferences", JSON.stringify(preferences));
   }, [preferences]);
+
+  useEffect(() => {
+    if (!appointments.data?.length) return;
+    setAppointmentDates((current) => {
+      const next = { ...current };
+      appointments.data.forEach((appointment) => {
+        if (!next[appointment.property_id]) {
+          next[appointment.property_id] = toDateTimeLocal(appointment.scheduled_date);
+        }
+      });
+      return next;
+    });
+  }, [appointments.data]);
 
   const handleFileUpload = async (field: "photo_urls" | "document_urls", files: File[]) => {
     if (!token || !files.length) return;
@@ -465,15 +519,15 @@ export default function DashboardPage() {
       setListingPage(1);
       await myListings.refetch();
       await notifications.refetch();
-      setListingMessage("Property submitted successfully. It is now queued for verification.");
+      setListingMessage("Property submitted successfully. Go to Appointments to choose a verification inspection date for this listing.");
       setLocalListingNotice({
         id: `local-listing-${createdProperty.id}`,
         title: "Listing submitted",
-        message: `${createdProperty.title} has been registered with pending verification status.`,
+        message: `${createdProperty.title} has been registered. Choose a verification appointment date from your Appointments section.`,
         created_at: new Date().toISOString(),
         is_read: false,
       });
-      setActive("saved");
+      setActive("appointments");
     } catch (error) {
       setListingError(error instanceof Error ? error.message : "Unable to submit the property right now.");
     }
@@ -497,6 +551,61 @@ export default function DashboardPage() {
     }
   });
 
+  const saveListingAppointment = async (propertyId: string, appointmentId?: string) => {
+    if (!token) return;
+    const rawDate = appointmentDates[propertyId];
+    if (!rawDate) {
+      setAppointmentError("Choose an appointment date and time first.");
+      return;
+    }
+
+    try {
+      setAppointmentError(null);
+      setAppointmentMessage(null);
+      setSavingAppointmentId(propertyId);
+      const scheduled_date = new Date(rawDate).toISOString();
+      if (appointmentId) {
+        await updateAppointment(token, appointmentId, { scheduled_date });
+      } else {
+        await createAppointment(token, {
+          property_id: propertyId,
+          scheduled_date,
+          tenant_notes: "Verification inspection appointment selected by listing owner.",
+        });
+      }
+      await appointments.refetch();
+      await notifications.refetch();
+      setAppointmentMessage("Appointment saved. Your notification activity has been updated.");
+    } catch (error) {
+      setAppointmentError(error instanceof Error ? error.message : "Unable to save appointment right now.");
+    } finally {
+      setSavingAppointmentId(null);
+    }
+  };
+
+  const selectDashboardSection = (key: string) => {
+    if (key === "appointments") {
+      const viewedAt = Date.now();
+      setAppointmentsViewedAt(viewedAt);
+      if (typeof window !== "undefined") {
+        window.localStorage.setItem("gg-homes-appointments-viewed-at", String(viewedAt));
+      }
+    }
+
+    if (key === "notifications") {
+      const viewedAt = Date.now();
+      setNotificationsViewedAt(viewedAt);
+      setLocalListingNotice((current) => (current ? { ...current, is_read: true } : current));
+      if (token) {
+        markNotificationsRead(token)
+          .then(() => notifications.refetch())
+          .catch(() => undefined);
+      }
+    }
+
+    setActive(key as DashboardSection);
+  };
+
   if (!token) {
     return (
       <main className="mx-auto max-w-4xl px-4 pb-20 pt-32 md:px-6">
@@ -508,13 +617,9 @@ export default function DashboardPage() {
   return (
     <DashboardLayout
       active={active}
+      appointmentCount={appointmentCount}
       notificationCount={notificationCount}
-      onSelect={(key) => {
-        if (key === "notifications") {
-          setLocalListingNotice((current) => (current ? { ...current, is_read: true } : current));
-        }
-        setActive(key as DashboardSection);
-      }}
+      onSelect={selectDashboardSection}
     >
       <div className="space-y-6">
         {listingMessage && active !== "list-property" ? (
@@ -746,9 +851,90 @@ export default function DashboardPage() {
           <>
             <SectionHeader
               eyebrow="Appointments"
-              title="Inspection activity and follow-ups"
-              description="Track inspection schedules, outcomes, and completed visits from one clean table."
+              title="Choose inspection dates for each listing"
+              description="Every pending listing gets its own verification appointment, so multiple properties can move through inspection independently."
             />
+            <div className="rounded-3xl border border-brand-gold/30 bg-white/95 p-5 text-sm leading-7 text-brand-gray">
+              <p className="font-semibold text-brand-dark-text">Appointment rule</p>
+              <p className="mt-2">
+                You can edit an appointment date until 48 hours before the scheduled time. If the date passes and admin has not marked it attended, the appointment becomes invalid and you will need to set another date.
+              </p>
+            </div>
+            {appointmentMessage ? (
+              <div className="rounded-2xl border border-brand-green/20 bg-brand-green/10 px-4 py-3 text-sm font-medium text-brand-green">
+                {appointmentMessage}
+              </div>
+            ) : null}
+            {appointmentError ? (
+              <div className="rounded-2xl border border-brand-red/20 bg-brand-red/10 px-4 py-3 text-sm font-medium text-brand-red">
+                {appointmentError}
+              </div>
+            ) : null}
+            {pendingListings.length ? (
+              <div className="grid gap-4 lg:grid-cols-2">
+                {pendingListings.map((property) => {
+                  const appointment = latestAppointmentByProperty.get(property.id);
+                  const hasOpenAppointment = appointment?.status === "PENDING" || appointment?.status === "CONFIRMED";
+                  const canEdit = appointment ? hasOpenAppointment && canEditAppointmentDate(appointment.scheduled_date) : true;
+                  const needsNewDate = appointment?.status === "INVALID" || appointment?.status === "NO_SHOW" || !appointment;
+
+                  return (
+                    <Card key={property.id} className="bg-white/95">
+                      <CardContent className="space-y-4">
+                        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                          <div>
+                            <p className="font-semibold text-brand-dark-text">{property.title}</p>
+                            <p className="text-sm text-brand-gray">
+                              {property.neighbourhood}, {property.city}
+                            </p>
+                          </div>
+                          {appointment ? <StatusBadge value={appointment.status} /> : <Badge>Needs date</Badge>}
+                        </div>
+                        {appointment ? (
+                          <p className="text-sm leading-7 text-brand-gray">
+                            Current date: {new Date(appointment.scheduled_date).toLocaleString()}
+                          </p>
+                        ) : null}
+                        <div className="grid gap-3 sm:grid-cols-[1fr_auto]">
+                          <Input
+                            type="datetime-local"
+                            min={toDateTimeLocal(new Date(Date.now() + 60 * 60 * 1000).toISOString())}
+                            value={appointmentDates[property.id] ?? ""}
+                            disabled={!canEdit && !needsNewDate}
+                            onChange={(event) =>
+                              setAppointmentDates((current) => ({
+                                ...current,
+                                [property.id]: event.target.value,
+                              }))
+                            }
+                          />
+                          <Button
+                            type="button"
+                            variant="dark"
+                            isLoading={savingAppointmentId === property.id}
+                            loadingText="Saving..."
+                            disabled={!canEdit && !needsNewDate}
+                            onClick={() => saveListingAppointment(property.id, hasOpenAppointment ? appointment?.id : undefined)}
+                          >
+                            {needsNewDate ? "Set Date" : "Update Date"}
+                          </Button>
+                        </div>
+                        {!canEdit && hasOpenAppointment ? (
+                          <p className="text-xs font-medium text-brand-red">
+                            This appointment is inside the 48-hour edit window and can no longer be changed from the dashboard.
+                          </p>
+                        ) : null}
+                        {needsNewDate && appointment ? (
+                          <p className="text-xs font-medium text-brand-red">
+                            This appointment needs a fresh date before verification can continue.
+                          </p>
+                        ) : null}
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+              </div>
+            ) : null}
             <Card className="bg-white/95">
               <CardContent>
                 {appointments.data?.length ? (
@@ -756,20 +942,28 @@ export default function DashboardPage() {
                     <Table>
                       <thead>
                         <tr className="border-b border-brand-border text-sm text-brand-gray">
+                          <th className="pb-3">Listing</th>
                           <th className="pb-3">Date</th>
                           <th className="pb-3">Status</th>
                           <th className="pb-3">Outcome</th>
+                          <th className="pb-3">Notes</th>
                         </tr>
                       </thead>
                       <tbody>
                         {pagedAppointments.map((item) => (
                           <tr key={item.id} className="border-b border-brand-border/70">
+                            <td className="py-4 font-medium text-brand-dark-text">
+                              {listingById.get(item.property_id)?.title ?? "Property inspection"}
+                            </td>
                             <td className="py-4">{new Date(item.scheduled_date).toLocaleString()}</td>
                             <td className="py-4">
                               <StatusBadge value={item.status} />
                             </td>
                             <td className="py-4 text-sm capitalize text-brand-gray">
                               {item.outcome.replaceAll("_", " ")}
+                            </td>
+                            <td className="py-4 text-sm text-brand-gray">
+                              {item.admin_notes || item.tenant_notes || "-"}
                             </td>
                           </tr>
                         ))}
