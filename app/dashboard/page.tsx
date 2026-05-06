@@ -44,6 +44,7 @@ import { Switch } from "@/components/ui/switch";
 import { Table } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { formatMoney } from "@/lib/utils";
 
 type DashboardSection =
@@ -250,6 +251,7 @@ export default function DashboardPage() {
   const [appointmentMessage, setAppointmentMessage] = useState<string | null>(null);
   const [appointmentError, setAppointmentError] = useState<string | null>(null);
   const [savingAppointmentId, setSavingAppointmentId] = useState<string | null>(null);
+  const [confirmAppointment, setConfirmAppointment] = useState<{ propertyId: string; appointmentId?: string; date: string } | null>(null);
   const [localListingNotice, setLocalListingNotice] = useState<{
     id: string;
     title: string;
@@ -861,8 +863,11 @@ export default function DashboardPage() {
               </p>
             </div>
             {appointmentMessage ? (
-              <div className="rounded-2xl border border-brand-green/20 bg-brand-green/10 px-4 py-3 text-sm font-medium text-brand-green">
-                {appointmentMessage}
+              <div className="flex items-center justify-between rounded-2xl border border-brand-green/20 bg-brand-green/10 px-4 py-3 text-sm font-medium text-brand-green">
+                <span>{appointmentMessage}</span>
+                <button type="button" onClick={() => setAppointmentMessage(null)} className="ml-3 shrink-0 opacity-70 hover:opacity-100" aria-label="Dismiss">
+                  <X className="h-4 w-4" />
+                </button>
               </div>
             ) : null}
             {appointmentError ? (
@@ -895,7 +900,7 @@ export default function DashboardPage() {
                             Current date: {new Date(appointment.scheduled_date).toLocaleString()}
                           </p>
                         ) : null}
-                        <div className="grid gap-3 sm:grid-cols-[1fr_auto]">
+                        <div className="grid items-center gap-3 sm:grid-cols-[1fr_auto]">
                           <Input
                             type="datetime-local"
                             min={toDateTimeLocal(new Date(Date.now() + 60 * 60 * 1000).toISOString())}
@@ -911,10 +916,18 @@ export default function DashboardPage() {
                           <Button
                             type="button"
                             variant="dark"
+                            className="whitespace-nowrap"
                             isLoading={savingAppointmentId === property.id}
                             loadingText="Saving..."
                             disabled={!canEdit && !needsNewDate}
-                            onClick={() => saveListingAppointment(property.id, hasOpenAppointment ? appointment?.id : undefined)}
+                            onClick={() => {
+                              const rawDate = appointmentDates[property.id];
+                              if (!rawDate) {
+                                setAppointmentError("Choose an appointment date and time first.");
+                                return;
+                              }
+                              setConfirmAppointment({ propertyId: property.id, appointmentId: hasOpenAppointment ? appointment?.id : undefined, date: rawDate });
+                            }}
                           >
                             {needsNewDate ? "Set Date" : "Update Date"}
                           </Button>
@@ -1442,6 +1455,41 @@ export default function DashboardPage() {
           </>
         ) : null}
       </div>
+
+      <Dialog open={!!confirmAppointment} onOpenChange={(open) => { if (!open) setConfirmAppointment(null); }}>
+        <DialogContent className="max-w-md">
+          <div className="space-y-4">
+            <h3 className="text-brand-dark-text">Confirm appointment</h3>
+            <p className="text-sm leading-7 text-brand-gray">
+              You are about to {confirmAppointment?.appointmentId ? "update" : "set"} the inspection appointment to:
+            </p>
+            <div className="rounded-2xl border border-brand-border bg-brand-cream/40 px-4 py-3 text-sm font-semibold text-brand-dark-text">
+              {confirmAppointment ? new Date(confirmAppointment.date).toLocaleString(undefined, { dateStyle: "full", timeStyle: "short" }) : ""}
+            </div>
+            <p className="text-xs leading-6 text-brand-gray">
+              Once confirmed, the appointment date is locked until 48 hours before the scheduled time.
+            </p>
+            <div className="flex justify-end gap-3">
+              <Button variant="outline" type="button" onClick={() => setConfirmAppointment(null)}>
+                Cancel
+              </Button>
+              <Button
+                variant="dark"
+                type="button"
+                isLoading={!!savingAppointmentId}
+                loadingText="Saving..."
+                onClick={async () => {
+                  if (!confirmAppointment) return;
+                  await saveListingAppointment(confirmAppointment.propertyId, confirmAppointment.appointmentId);
+                  setConfirmAppointment(null);
+                }}
+              >
+                Confirm Appointment
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </DashboardLayout>
   );
 }

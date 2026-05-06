@@ -12,10 +12,6 @@ export function resolveMediaUrl(url?: string | null) {
   }
 
   const normalizedPath = url.startsWith("/") ? url : `/${url}`;
-  if (normalizedPath.startsWith("/uploads/")) {
-    return normalizedPath;
-  }
-
   const backendOrigin = getBackendOrigin();
   return backendOrigin ? `${backendOrigin}${normalizedPath}` : normalizedPath;
 }
