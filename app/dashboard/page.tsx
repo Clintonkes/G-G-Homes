@@ -1,6 +1,6 @@
 "use client";
 
-import { useDeferredValue, useEffect, useMemo, useState } from "react";
+import { useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import {
@@ -11,6 +11,7 @@ import {
   Search,
   ShieldCheck,
   Sparkles,
+  Trash2,
   Upload,
   X,
 } from "lucide-react";
@@ -19,6 +20,7 @@ import { useRouter } from "next/navigation";
 import {
   createAppointment,
   createProperty,
+  deleteProperty,
   fetchAppointments,
   fetchNotifications,
   fetchPayments,
@@ -252,6 +254,9 @@ export default function DashboardPage() {
   const [appointmentError, setAppointmentError] = useState<string | null>(null);
   const [savingAppointmentId, setSavingAppointmentId] = useState<string | null>(null);
   const [confirmAppointment, setConfirmAppointment] = useState<{ propertyId: string; appointmentId?: string; date: string } | null>(null);
+  const [propertyToRemove, setPropertyToRemove] = useState<{ id: string; title: string; status: string } | null>(null);
+  const [removingPropertyId, setRemovingPropertyId] = useState<string | null>(null);
+  const [removeError, setRemoveError] = useState<string | null>(null);
   const [localListingNotice, setLocalListingNotice] = useState<{
     id: string;
     title: string;
@@ -259,6 +264,9 @@ export default function DashboardPage() {
     created_at: string;
     is_read: boolean;
   } | null>(null);
+  const contentTopRef = useRef<HTMLDivElement>(null);
+
+  const scrollToTop = () => contentTopRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
 
   const deferredSearch = useDeferredValue(searchTerm);
   const token = useAuthStore((state) => state.token);
@@ -530,8 +538,10 @@ export default function DashboardPage() {
         is_read: false,
       });
       setActive("appointments");
+      scrollToTop();
     } catch (error) {
       setListingError(error instanceof Error ? error.message : "Unable to submit the property right now.");
+      scrollToTop();
     }
   });
 
@@ -585,6 +595,24 @@ export default function DashboardPage() {
     }
   };
 
+  const removeListingConfirmed = async () => {
+    if (!token || !propertyToRemove) return;
+    try {
+      setRemoveError(null);
+      setRemovingPropertyId(propertyToRemove.id);
+      await deleteProperty(token, propertyToRemove.id);
+      setPropertyToRemove(null);
+      setListingPage(1);
+      await myListings.refetch();
+      await appointments.refetch();
+      await notifications.refetch();
+    } catch (error) {
+      setRemoveError(error instanceof Error ? error.message : "Unable to remove the listing right now.");
+    } finally {
+      setRemovingPropertyId(null);
+    }
+  };
+
   const selectDashboardSection = (key: string) => {
     if (key === "appointments") {
       const viewedAt = Date.now();
@@ -623,7 +651,7 @@ export default function DashboardPage() {
       notificationCount={notificationCount}
       onSelect={selectDashboardSection}
     >
-      <div className="space-y-6">
+      <div ref={contentTopRef} className="space-y-6">
         {listingMessage && active !== "list-property" ? (
           <div className="rounded-2xl border border-brand-green/20 bg-white/95 px-4 py-3 text-sm font-medium text-brand-green shadow-sm">
             {listingMessage}
@@ -811,15 +839,26 @@ export default function DashboardPage() {
                   <div key={property.id} className="space-y-3">
                     <PropertyCard property={property} hrefBase="/dashboard/properties" />
                       <div className="rounded-3xl border border-brand-border bg-white/95 p-4">
-                        <div className="flex flex-wrap items-center gap-3">
-                          <StatusBadge value={property.status} />
-                          {property.is_verified ? (
-                            <Badge className="border-brand-green/30 text-brand-green">Verified</Badge>
-                          ) : (
-                            <Badge>Awaiting verification</Badge>
-                          )}
-                          <Badge>{property.city}</Badge>
-                          <Badge>{formatMoney(property.annual_rent, property.currency)}</Badge>
+                        <div className="flex flex-wrap items-center justify-between gap-3">
+                          <div className="flex flex-wrap items-center gap-3">
+                            <StatusBadge value={property.status} />
+                            {property.is_verified ? (
+                              <Badge className="border-brand-green/30 text-brand-green">Verified</Badge>
+                            ) : (
+                              <Badge>Awaiting verification</Badge>
+                            )}
+                            <Badge>{property.city}</Badge>
+                            <Badge>{formatMoney(property.annual_rent, property.currency)}</Badge>
+                          </div>
+                          <button
+                            type="button"
+                            className="flex shrink-0 items-center gap-1.5 rounded-full border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-medium text-red-600 transition hover:bg-red-100 disabled:opacity-50"
+                            disabled={removingPropertyId === property.id}
+                            onClick={() => setPropertyToRemove({ id: property.id, title: property.title, status: property.status })}
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                            Remove
+                          </button>
                         </div>
                         <p className="mt-3 text-sm leading-7 text-brand-gray">
                           Created on {new Date(property.created_at).toLocaleDateString()} and visible in your landlord workspace.
@@ -1455,6 +1494,43 @@ export default function DashboardPage() {
           </>
         ) : null}
       </div>
+
+      <Dialog open={!!propertyToRemove} onOpenChange={(open) => { if (!open) { setPropertyToRemove(null); setRemoveError(null); } }}>
+        <DialogContent className="max-w-md">
+          <div className="space-y-4">
+            <h3 className="text-brand-dark-text">Remove listing?</h3>
+            <p className="text-sm leading-7 text-brand-gray">
+              You are about to permanently remove <span className="font-semibold text-brand-dark-text">{propertyToRemove?.title}</span> from G&amp;G Homes.
+            </p>
+            <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm leading-6 text-amber-800">
+              Any pending or confirmed inspection appointments for this listing will be <strong>automatically cancelled</strong> and the affected tenants will be notified.
+            </div>
+            {propertyToRemove?.status === "RENTED" ? (
+              <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-700">
+                This listing has an active tenancy and cannot be removed. Contact support if needed.
+              </div>
+            ) : null}
+            {removeError ? (
+              <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-700">
+                {removeError}
+              </div>
+            ) : null}
+            <div className="flex justify-end gap-3">
+              <Button variant="outline" type="button" onClick={() => { setPropertyToRemove(null); setRemoveError(null); }}>
+                Keep Listing
+              </Button>
+              <button
+                type="button"
+                disabled={!!removingPropertyId || propertyToRemove?.status === "RENTED"}
+                onClick={removeListingConfirmed}
+                className="inline-flex items-center gap-2 rounded-full bg-red-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-red-700 disabled:opacity-50"
+              >
+                {removingPropertyId ? "Removing…" : "Remove Listing"}
+              </button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={!!confirmAppointment} onOpenChange={(open) => { if (!open) setConfirmAppointment(null); }}>
         <DialogContent className="max-w-md">

@@ -172,6 +172,20 @@ export async function uploadAsset(token: string, file: File) {
   return response.json() as Promise<{ url: string; uploaded_by: string }>;
 }
 
+export async function deleteProperty(token: string, id: string): Promise<void> {
+  const headers = new Headers();
+  headers.set("Authorization", `Bearer ${token}`);
+  const response = await fetch(`/api/properties/${id}`, {
+    method: "DELETE",
+    headers,
+    cache: "no-store",
+  });
+  if (!response.ok) {
+    const payload = await response.json().catch(() => ({ detail: "Remove failed" }));
+    throw new Error(payload.detail ?? "Remove failed");
+  }
+}
+
 export async function initializePayment(token: string, payload: Record<string, unknown>) {
   return request<{ checkout_url: string }>("/api/payments/initialize", {
     method: "POST",

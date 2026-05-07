@@ -1,11 +1,13 @@
 "use client";
 
-import Image from "next/image";
 import { Play } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
 import { cn } from "@/lib/utils";
 import { isVideoUrl, resolveMediaUrl } from "@/lib/media";
+import { SafeImage } from "@/components/ui/safe-image";
+
+const PLACEHOLDER = "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=1400&q=80&auto=format&fit=crop";
 
 export function PropertyGallery({ photoUrls, videoUrls, title }: { photoUrls: string[]; videoUrls: string[]; title: string }) {
   const media = useMemo(() => {
@@ -16,13 +18,9 @@ export function PropertyGallery({ photoUrls, videoUrls, title }: { photoUrls: st
 
     return uploaded.length
       ? uploaded
-      : [
-          {
-            type: "image" as const,
-            url: "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=1400&q=80&auto=format&fit=crop",
-          },
-        ];
+      : [{ type: "image" as const, url: PLACEHOLDER }];
   }, [photoUrls, videoUrls]);
+
   const [activeIndex, setActiveIndex] = useState(0);
   const active = media[activeIndex] ?? media[0];
 
@@ -46,7 +44,7 @@ export function PropertyGallery({ photoUrls, videoUrls, title }: { photoUrls: st
             <source src={active.url} />
           </video>
         ) : (
-          <Image src={active.url} alt={title} fill className="object-cover" unoptimized />
+          <SafeImage src={active.url} alt={title} fill className="object-cover" fallback={PLACEHOLDER} />
         )}
       </div>
       <div className="grid grid-cols-4 gap-3 md:grid-cols-6">
@@ -70,7 +68,7 @@ export function PropertyGallery({ photoUrls, videoUrls, title }: { photoUrls: st
                 </span>
               </>
             ) : (
-              <Image src={item.url} alt={title} fill className="object-cover" unoptimized />
+              <SafeImage src={item.url} alt={title} fill className="object-cover" fallback={PLACEHOLDER} />
             )}
           </button>
         ))}

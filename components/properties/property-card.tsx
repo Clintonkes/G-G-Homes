@@ -1,10 +1,10 @@
-import Image from "next/image";
 import Link from "next/link";
 import { Bath, BedDouble, MapPin } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { SafeImage } from "@/components/ui/safe-image";
 import { Property } from "@/lib/types";
 import { PriceDisplay } from "@/components/properties/price-display";
 import { resolveMediaUrl } from "@/lib/media";
@@ -24,7 +24,7 @@ export function PropertyCard({
   return (
     <Card className={variant === "list" ? "interactive-panel overflow-hidden md:grid md:grid-cols-[320px_1fr]" : "interactive-panel overflow-hidden"}>
       <div className="relative min-h-64 bg-brand-cream">
-        <Image src={image} alt={property.title} fill className="object-cover" unoptimized />
+        <SafeImage src={image} alt={property.title} fill className="object-cover" />
       </div>
       <CardContent className="space-y-4">
         <div className="flex items-center justify-between">
