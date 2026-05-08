@@ -4,6 +4,7 @@ import { Bath, BedDouble, MapPin } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { MiniSlideshow } from "@/components/ui/mini-slideshow";
 import { SafeImage } from "@/components/ui/safe-image";
 import { Property } from "@/lib/types";
 import { PriceDisplay } from "@/components/properties/price-display";
@@ -13,18 +14,24 @@ export function PropertyCard({
   property,
   variant = "grid",
   hrefBase = "/properties",
+  showSlideshow = false,
 }: {
   property: Property;
   showSaveButton?: boolean;
   variant?: "grid" | "list";
   hrefBase?: string;
+  showSlideshow?: boolean;
 }) {
   const image = resolveMediaUrl(property.thumbnail_url || property.photo_urls[0]) || "https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=1200&q=80&auto=format&fit=crop";
 
   return (
     <Card className={variant === "list" ? "interactive-panel overflow-hidden md:grid md:grid-cols-[320px_1fr]" : "interactive-panel overflow-hidden"}>
       <div className="relative min-h-64 bg-brand-cream">
-        <SafeImage src={image} alt={property.title} fill className="object-cover" />
+        {showSlideshow && property.photo_urls.length > 0 ? (
+          <MiniSlideshow photoUrls={property.photo_urls} title={property.title} />
+        ) : (
+          <SafeImage src={image} alt={property.title} fill className="object-cover" />
+        )}
       </div>
       <CardContent className="space-y-4">
         <div className="flex items-center justify-between">

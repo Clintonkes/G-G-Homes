@@ -172,6 +172,17 @@ export async function uploadAsset(token: string, file: File) {
   return response.json() as Promise<{ url: string; uploaded_by: string }>;
 }
 
+export async function toggleOccupancy(token: string, id: string) {
+  return request<import("@/lib/types").Property>(`/api/properties/${id}/occupancy`, { method: "PATCH" }, token);
+}
+
+export async function switchUserRole(token: string, role: "TENANT" | "LANDLORD") {
+  return request<import("@/lib/types").User>("/api/users/me", {
+    method: "PATCH",
+    body: JSON.stringify({ role }),
+  }, token);
+}
+
 export async function deleteProperty(token: string, id: string): Promise<void> {
   const headers = new Headers();
   headers.set("Authorization", `Bearer ${token}`);

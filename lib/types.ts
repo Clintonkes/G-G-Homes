@@ -38,7 +38,10 @@ export interface Property {
   thumbnail_url?: string | null;
   status: PropertyStatus;
   is_verified: boolean;
+  is_fully_occupied: boolean;
   listing_type: string;
+  latitude?: number | null;
+  longitude?: number | null;
   created_at: string;
 }
 

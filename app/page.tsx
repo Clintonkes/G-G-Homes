@@ -127,30 +127,41 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <section className="py-20">
+      <section className="bg-brand-black py-20">
         <div className="mx-auto grid max-w-7xl gap-10 px-4 md:grid-cols-2 md:px-6">
           <Reveal>
-            <SectionHeading label="For Landlords" title="Are You a Landlord?" body="List your property with G & G Homes and connect directly with verified tenants. No middlemen. No agent commissions. Full control." invert />
+            <SectionHeading
+              label="For Landlords"
+              title="Are You a Landlord?"
+              body="List your property directly on G &amp; G Homes and let verified tenants find you — no agent standing between you and your income. You set the price, you keep full control."
+              invert
+            />
+            <p className="mt-4 text-sm leading-7 text-brand-white/70">
+              Landlords who list on G &amp; G Homes save an average of 10–15% in fees compared to agent-managed lettings — money that stays in your pocket.
+            </p>
             <Link href="/register" className="mt-8 inline-block">
               <Button>List Your Property Free</Button>
             </Link>
           </Reveal>
           <Reveal delay={0.12}>
-          <Card className="interactive-panel border-brand-gold/30 bg-brand-black text-brand-white">
-            <CardContent className="space-y-5 text-brand-white">
-              {[
-                "Free listing setup",
-                "Professional photo guidelines",
-                "Tenant verification support",
-                "Rent payment processing",
-              ].map((item) => (
-                <div key={item} className="flex items-center gap-3">
-                  <Check className="h-5 w-5 text-brand-gold" />
-                  <span>{item}</span>
-                </div>
-              ))}
-            </CardContent>
-          </Card>
+            <Card className="interactive-panel border-brand-gold/30 bg-white/5 text-brand-white backdrop-blur">
+              <CardContent className="space-y-5">
+                {[
+                  ["Free listing setup", "Submit your property in three steps — no paperwork, no agent required."],
+                  ["Verified-tenant pipeline", "Renters go through account registration before they can book an inspection."],
+                  ["No commission on rent", "You collect 100% of what you charge. G & G Homes earns nothing from your rental income."],
+                  ["Inspection scheduling", "Tenants book directly through the platform. You approve and attend."],
+                ].map(([title, detail]) => (
+                  <div key={title} className="flex items-start gap-3">
+                    <Check className="mt-1 h-5 w-5 shrink-0 text-brand-gold" />
+                    <div>
+                      <p className="font-semibold text-brand-white">{title}</p>
+                      <p className="mt-0.5 text-sm leading-6 text-brand-white/70">{detail}</p>
+                    </div>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
           </Reveal>
         </div>
       </section>
@@ -158,22 +169,36 @@ export default async function HomePage() {
       <section className="py-20">
         <div className="mx-auto max-w-7xl px-4 md:px-6">
           <Reveal>
-            <SectionHeading label="Why This System Works" title="A full web platform that preserves the WhatsApp-native speed of the original workflow." invert />
+            <SectionHeading
+              label="Why This System Works"
+              title="Find a home without the agent premium."
+              body="Agents add cost and complexity to a process that should be straightforward. G &amp; G Homes cuts them out entirely — connecting renters and landlords directly, so the price you see is the price the landlord actually set."
+              invert
+            />
           </Reveal>
           <div className="mt-12 grid gap-6 lg:grid-cols-3">
             {[
-              ["Verified marketplace", "Every public listing goes live only after internal review and landlord verification."],
-              ["Unified dashboard", "One account lets users search, save, book inspections, list properties, and track rent payments."],
-              ["AI-ready operations", "The backend includes an AI service layer for listing polish, support copilots, and smarter search once OpenAI keys are added."],
+              [
+                "Prices set by landlords, not agents",
+                "Every rent figure on this platform comes directly from the property owner. No agent has inflated it with commission, finder fees, or vague service charges. What you see is the real asking price.",
+              ],
+              [
+                "Less searching, more finding",
+                "Filter by location, budget, property type, and amenities in one place. Listings are verified before going live, so you are never chasing a property that has already been taken or does not exist.",
+              ],
+              [
+                "One account for the whole journey",
+                "Search, save favourites, book an inspection, and track payments inside a single dashboard — without being handed off to a third party at every step.",
+              ],
             ].map(([title, copy], index) => (
               <Reveal key={title} delay={index * 0.08}>
-              <Card className="interactive-panel bg-white">
-                <CardContent className="space-y-4">
-                  <ShieldCheck className="h-8 w-8 text-brand-gold" />
-                  <h3>{title}</h3>
-                  <p className="text-sm leading-7 text-brand-gray">{copy}</p>
-                </CardContent>
-              </Card>
+                <Card className="interactive-panel bg-white">
+                  <CardContent className="space-y-4">
+                    <ShieldCheck className="h-8 w-8 text-brand-gold" />
+                    <h3>{title}</h3>
+                    <p className="text-sm leading-7 text-brand-gray">{copy}</p>
+                  </CardContent>
+                </Card>
               </Reveal>
             ))}
           </div>

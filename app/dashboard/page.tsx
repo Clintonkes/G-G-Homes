@@ -26,6 +26,8 @@ import {
   fetchPayments,
   fetchProperties,
   markNotificationsRead,
+  switchUserRole,
+  toggleOccupancy,
   updateAppointment,
   updateMe,
   uploadAsset,
@@ -47,6 +49,7 @@ import { Table } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Toast } from "@/components/ui/toast";
 import { formatMoney } from "@/lib/utils";
 
 type DashboardSection =
@@ -257,6 +260,10 @@ export default function DashboardPage() {
   const [propertyToRemove, setPropertyToRemove] = useState<{ id: string; title: string; status: string } | null>(null);
   const [removingPropertyId, setRemovingPropertyId] = useState<string | null>(null);
   const [removeError, setRemoveError] = useState<string | null>(null);
+  const [listingStepError, setListingStepError] = useState<string | null>(null);
+  const [togglingOccupancyId, setTogglingOccupancyId] = useState<string | null>(null);
+  const [switchingRole, setSwitchingRole] = useState(false);
+  const [roleError, setRoleError] = useState<string | null>(null);
   const [localListingNotice, setLocalListingNotice] = useState<{
     id: string;
     title: string;
@@ -487,8 +494,12 @@ export default function DashboardPage() {
       fields = ["amenities", "photo_urls", "document_urls"];
     }
 
+    setListingStepError(null);
     const isValid = await propertyForm.trigger(fields);
-    if (!isValid) return;
+    if (!isValid) {
+      setListingStepError("Please fill in all required fields highlighted below before continuing.");
+      return;
+    }
     setPropertyStep((current) => Math.min(current + 1, listingSteps.length - 1));
   };
 
@@ -595,6 +606,34 @@ export default function DashboardPage() {
     }
   };
 
+  const togglePropertyOccupancy = async (propertyId: string) => {
+    if (!token) return;
+    try {
+      setTogglingOccupancyId(propertyId);
+      await toggleOccupancy(token, propertyId);
+      await myListings.refetch();
+    } catch {
+      // error handled silently; the button reverts visually on refetch
+    } finally {
+      setTogglingOccupancyId(null);
+    }
+  };
+
+  const handleRoleSwitch = async () => {
+    if (!token || !user) return;
+    const nextRole = user.role === "LANDLORD" ? "TENANT" : "LANDLORD";
+    try {
+      setRoleError(null);
+      setSwitchingRole(true);
+      const updated = await switchUserRole(token, nextRole);
+      setSession(token, updated);
+    } catch (error) {
+      setRoleError(error instanceof Error ? error.message : "Unable to switch role.");
+    } finally {
+      setSwitchingRole(false);
+    }
+  };
+
   const removeListingConfirmed = async () => {
     if (!token || !propertyToRemove) return;
     try {
@@ -652,11 +691,6 @@ export default function DashboardPage() {
       onSelect={selectDashboardSection}
     >
       <div ref={contentTopRef} className="space-y-6">
-        {listingMessage && active !== "list-property" ? (
-          <div className="rounded-2xl border border-brand-green/20 bg-white/95 px-4 py-3 text-sm font-medium text-brand-green shadow-sm">
-            {listingMessage}
-          </div>
-        ) : null}
         {active === "overview" ? (
           <>
             {expiringPayment ? (
@@ -837,7 +871,7 @@ export default function DashboardPage() {
               <div className="grid gap-6 xl:grid-cols-2">
                 {myListings.data.items.map((property) => (
                   <div key={property.id} className="space-y-3">
-                    <PropertyCard property={property} hrefBase="/dashboard/properties" />
+                    <PropertyCard property={property} hrefBase="/dashboard/properties" showSlideshow />
                       <div className="rounded-3xl border border-brand-border bg-white/95 p-4">
                         <div className="flex flex-wrap items-center justify-between gap-3">
                           <div className="flex flex-wrap items-center gap-3">
@@ -860,6 +894,26 @@ export default function DashboardPage() {
                             Remove
                           </button>
                         </div>
+                        {property.status === "ACTIVE" ? (
+                          <div className="mt-3 flex items-center justify-between rounded-2xl border border-brand-border bg-brand-cream/50 px-4 py-3">
+                            <div>
+                              <p className="text-sm font-semibold text-brand-dark-text">
+                                {property.is_fully_occupied ? "Fully occupied — hidden from search" : "Available — visible in search"}
+                              </p>
+                              <p className="mt-0.5 text-xs text-brand-gray">
+                                {property.is_fully_occupied ? "Turn off when a space opens up" : "Turn on when all units are filled"}
+                              </p>
+                            </div>
+                            <button
+                              type="button"
+                              disabled={togglingOccupancyId === property.id}
+                              onClick={() => togglePropertyOccupancy(property.id)}
+                              className={`relative h-6 w-11 shrink-0 rounded-full transition-colors focus:outline-none ${property.is_fully_occupied ? "bg-brand-gold" : "bg-brand-border"}`}
+                            >
+                              <span className={`absolute top-0.5 left-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${property.is_fully_occupied ? "translate-x-5" : "translate-x-0"}`} />
+                            </button>
+                          </div>
+                        ) : null}
                         <p className="mt-3 text-sm leading-7 text-brand-gray">
                           Created on {new Date(property.created_at).toLocaleDateString()} and visible in your landlord workspace.
                         </p>
@@ -1145,14 +1199,14 @@ export default function DashboardPage() {
             />
             <Card className="bg-white/95">
               <CardContent className="space-y-6">
-                {listingMessage ? (
-                  <div className="rounded-2xl border border-brand-green/20 bg-brand-green/10 px-4 py-3 text-sm font-medium text-brand-green">
-                    {listingMessage}
-                  </div>
-                ) : null}
                 {listingError ? (
                   <div className="rounded-2xl border border-brand-red/20 bg-brand-red/10 px-4 py-3 text-sm font-medium text-brand-red">
                     {listingError}
+                  </div>
+                ) : null}
+                {listingStepError ? (
+                  <div className="rounded-2xl border-2 border-brand-gold bg-brand-gold/5 px-4 py-3 text-sm font-medium text-brand-dark-text">
+                    {listingStepError}
                   </div>
                 ) : null}
                 <form className="space-y-6" onSubmit={submitProperty}>
@@ -1489,6 +1543,35 @@ export default function DashboardPage() {
                     </CardContent>
                   </Card>
                 </div>
+                <Card className="bg-white/95">
+                  <CardContent className="space-y-4">
+                    <div>
+                      <p className="text-xs font-semibold uppercase tracking-[0.14em] text-brand-gold">Account Mode</p>
+                      <h2 className="mt-2 text-2xl text-brand-dark-text">Switch your role</h2>
+                      <p className="mt-2 text-sm leading-7 text-brand-gray">
+                        You are currently signed in as a <span className="font-semibold text-brand-dark-text">{user?.role === "LANDLORD" ? "Landlord" : "Tenant"}</span>.
+                        {user?.role === "LANDLORD"
+                          ? " Switch to Tenant to search and book inspections as a renter."
+                          : " Switch to Landlord to list properties and manage inspection appointments."}
+                      </p>
+                    </div>
+                    {roleError ? (
+                      <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-700">{roleError}</div>
+                    ) : null}
+                    {user?.role !== "ADMIN" ? (
+                      <Button
+                        variant="dark"
+                        isLoading={switchingRole}
+                        loadingText="Switching…"
+                        onClick={handleRoleSwitch}
+                      >
+                        Switch to {user?.role === "LANDLORD" ? "Tenant" : "Landlord"}
+                      </Button>
+                    ) : (
+                      <p className="text-sm text-brand-gray">Admin accounts cannot switch roles.</p>
+                    )}
+                  </CardContent>
+                </Card>
               </TabsContent>
             </Tabs>
           </>
@@ -1566,6 +1649,8 @@ export default function DashboardPage() {
           </div>
         </DialogContent>
       </Dialog>
+
+      <Toast message={listingMessage} onDismiss={() => setListingMessage(null)} />
     </DashboardLayout>
   );
 }
