@@ -32,6 +32,10 @@ export interface Property {
   currency: string;
   security_deposit?: number | null;
   amenities: string[];
+  has_water: boolean;
+  has_electricity: boolean;
+  has_security: boolean;
+  has_parking: boolean;
   photo_urls: string[];
   video_urls: string[];
   document_urls: string[];
