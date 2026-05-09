@@ -725,7 +725,7 @@ export default function DashboardPage() {
                 {
                   label: "Payments",
                   value: payments.data?.length ?? 0,
-                  hint: "Transactions and rent activity",
+                  hint: "Subscription payments",
                 },
                 {
                   label: "Notifications",

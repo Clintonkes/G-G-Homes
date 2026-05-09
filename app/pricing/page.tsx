@@ -58,8 +58,8 @@ export default function PricingPage() {
       <Reveal className="max-w-3xl">
         <p className="text-xs font-semibold uppercase tracking-[0.1em] text-brand-gold">Pricing</p>
         <h1 className="mt-4 text-brand-white">Flexible plans for tenants and landlords</h1>
-        <p className="mt-5 text-lg leading-8 text-brand-white/72">
-          Each card now breaks the plan contents into cleaner bullet points so the benefits are easier to scan, compare, and understand.
+        <p className="mt-5 text-lg leading-8 text-brand-white/85">
+          Choose a plan that fits how you use the platform — whether you are searching for a home, managing your listings, or doing both.
         </p>
       </Reveal>
       <div className="mt-12 grid gap-6 lg:grid-cols-4">

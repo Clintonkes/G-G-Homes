@@ -16,7 +16,6 @@ const stats = [
   { value: 500, suffix: "+", label: "Properties Listed" },
   { value: 1200, suffix: "+", label: "Happy Clients" },
   { value: 0, prefix: "₦", label: "Agent Fees" },
-  { value: 13, label: "Locations Covered" },
 ];
 
 export default async function HomePage() {
@@ -77,7 +76,7 @@ export default async function HomePage() {
       </section>
 
       <section className="py-8">
-        <div className="mx-auto grid max-w-7xl gap-6 px-4 md:grid-cols-4 md:px-6">
+        <div className="mx-auto grid max-w-7xl gap-6 px-4 md:grid-cols-3 md:px-6">
           {stats.map((stat, index) => (
             <Reveal key={stat.label} delay={index * 0.08}>
               <CountUpStat {...stat} />

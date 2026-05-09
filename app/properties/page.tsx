@@ -15,7 +15,7 @@ export default async function PropertiesPage({ searchParams }: { searchParams: R
       <Reveal className="mb-10 max-w-3xl">
         <p className="text-xs font-semibold uppercase tracking-[0.1em] text-brand-gold">Verified Listings</p>
         <h1 className="mt-4 text-brand-white">Explore Properties Across Multiple Locations</h1>
-        <p className="mt-4 text-lg leading-8 text-brand-white/72">Filter by neighbourhood, city, price, and verification status. Only active listings appear in public search.</p>
+        <p className="mt-4 text-lg leading-8 text-brand-white/85">Filter by neighbourhood, city, price, and verification status. Only active listings appear in public search.</p>
       </Reveal>
       <div className="grid gap-8 lg:grid-cols-[300px_1fr]">
         <Reveal>

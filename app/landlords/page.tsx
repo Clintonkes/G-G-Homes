@@ -21,7 +21,7 @@ export default function LandlordsPage() {
         <div className="grid gap-6 md:grid-cols-3">
           {["Fast onboarding", "Secure verification", "Direct payments"].map((title, index) => (
             <Reveal key={title} delay={index * 0.08}>
-              <Card className="interactive-panel bg-white"><CardContent><h3>{title}</h3><p className="mt-3 text-sm leading-7 text-brand-gray">Built for owners who want control, visibility, and a cleaner rental process.</p></CardContent></Card>
+              <Card className="interactive-panel bg-white"><CardContent><h3>{title}</h3></CardContent></Card>
             </Reveal>
           ))}
         </div>
