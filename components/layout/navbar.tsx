@@ -11,7 +11,6 @@ import { cn } from "@/lib/utils";
 import { useScrollPosition } from "@/hooks/use-scroll-position";
 
 const links = [
-  { href: "/properties", label: "Properties" },
   { href: "/landlords", label: "For Landlords" },
   { href: "/pricing", label: "Pricing" },
   { href: "/login", label: "Login" },

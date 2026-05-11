@@ -9,7 +9,7 @@ export default function LoginPage() {
       <AuthShell
         eyebrow="Welcome Back"
         title="Sign in and continue your rental journey."
-        description="The dark visual shell now stays continuous here too, so login feels like part of the same site experience instead of a separate page."
+        description="Access your full real estate workspace — search properties, manage listings, track inspections, and stay on top of payments, all in one place."
         ctaHref="/register"
         ctaLabel="Go to Sign Up"
       >

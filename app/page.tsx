@@ -36,9 +36,8 @@ export default async function HomePage() {
             <p className="mt-6 max-w-3xl text-xl leading-9 text-brand-white/80">
               Browse verified properties, schedule inspections, pay securely, and manage your rental journey from one unified account built for tenants, landlords, and multiple locations.
             </p>
-            <div className="mt-10 flex flex-col gap-4 sm:flex-row">
-              <Link href="/properties"><Button size="lg">Browse Properties</Button></Link>
-              <Link href="/register"><Button variant="outline" size="lg">Create Your Account</Button></Link>
+            <div className="mt-10 flex flex-row flex-wrap gap-4">
+              <Link href="/register"><Button size="lg">Create Your Account</Button></Link>
               <SectionLink sectionId="how-it-works" className="inline-flex items-center justify-center rounded-full border border-brand-white/20 px-6 py-3 text-sm font-semibold text-brand-white transition hover:border-brand-gold hover:text-brand-gold">
                 See How It Works
               </SectionLink>

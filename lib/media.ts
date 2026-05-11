@@ -13,6 +13,14 @@ export function resolveMediaUrl(url?: string | null) {
 
   const normalizedPath = url.startsWith("/") ? url : `/${url}`;
   const backendOrigin = getBackendOrigin();
+
+  if (normalizedPath.startsWith("/uploads/")) {
+    // Without a known backend origin, /uploads/ paths are permanently broken —
+    // they lived on Railway's ephemeral disk and were wiped on redeploy.
+    // Return "" so SafeImage skips the network request and shows its placeholder.
+    return backendOrigin ? `${backendOrigin}${normalizedPath}` : "";
+  }
+
   return backendOrigin ? `${backendOrigin}${normalizedPath}` : normalizedPath;
 }
 

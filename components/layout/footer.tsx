@@ -16,7 +16,6 @@ export function Footer() {
         <div className="space-y-3">
           <p className="text-sm font-semibold uppercase tracking-[0.1em] text-brand-gold">Quick Links</p>
           <div className="space-y-2 text-sm text-brand-gray">
-            <Link href="/properties" className="block">Properties</Link>
             <Link href="/about" className="block">About</Link>
             <Link href="/pricing" className="block">Pricing</Link>
             <Link href="/contact" className="block">Contact</Link>

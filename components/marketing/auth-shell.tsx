@@ -24,16 +24,13 @@ export function AuthShell({
         <section className="rounded-[2rem] border border-brand-gold/15 bg-white/5 p-8 text-brand-white backdrop-blur-md md:p-12">
           <p className="text-xs font-semibold uppercase tracking-[0.22em] text-brand-gold">{eyebrow}</p>
           <h1 className="mt-5 max-w-xl text-4xl md:text-6xl">{title}</h1>
-          <p className="mt-6 max-w-2xl text-base leading-8 text-brand-white/78">{description}</p>
-          <div className="mt-10 flex flex-wrap gap-4">
+          <p className="mt-6 max-w-2xl text-base leading-8 text-brand-white/85">{description}</p>
+          <div className="mt-10 flex flex-row flex-wrap items-center gap-3">
             <Link href={ctaHref}>
-              <Button variant="outline" className="gap-2">
+              <Button variant="outline" className="gap-2 whitespace-nowrap">
                 {ctaLabel}
                 <ArrowRight className="h-4 w-4" />
               </Button>
-            </Link>
-            <Link href="/properties">
-              <Button variant="dark">Browse Properties</Button>
             </Link>
           </div>
         </section>

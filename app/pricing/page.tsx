@@ -41,7 +41,7 @@ const plans = [
   },
   {
     title: "Annual",
-    price: "₦15,000/yr",
+    price: "₦10,000/yr",
     description: "Best value for long-term use across the full platform.",
     features: [
       "Includes everything inside the Standard plan.",
